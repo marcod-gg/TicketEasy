@@ -1,8 +1,87 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@inject Microsoft.Extensions.Configuration.IConfiguration Config
+@{
+    ViewData["Title"] = "Tickets";
+    var producto = Config["Producto:Nombre"];
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div id="app" data-url="@Config["Supabase:Url"]" data-key="@Config["Supabase:PublishableKey"]" data-producto="@producto">
+
+    <section id="login" class="nx-login" hidden>
+        <div class="nx-login__art">
+            <span class="fi-brand on-dark" translate="no"><span class="fi-brand-mark" aria-hidden="true"></span>@producto</span>
+            <div>
+                <p class="fi-eyebrow nx-login__eyebrow">Mesa de ayuda</p>
+                <h1>Cada solicitud, <span>con dueño y estado.</span></h1>
+                <p class="nx-login__lead">Pide ayuda, sigue el avance y confirma cuando quede resuelto.</p>
+            </div>
+        </div>
+        <form id="loginForm" class="nx-login__form">
+            <h2>Ingresar</h2>
+            <p class="text-body-secondary">Usa la cuenta que te dio tu organización.</p>
+            <label class="nx-field"><span>Correo</span><input id="email" type="email" class="form-control" required autocomplete="username"></label>
+            <label class="nx-field"><span>Contraseña</span><input id="pass" type="password" class="form-control" required autocomplete="current-password"></label>
+            <button class="btn btn-primary w-100" id="loginBtn">Entrar <i class="ph ph-arrow-right" aria-hidden="true"></i></button>
+            <p class="nx-error" id="loginMsg" role="alert"></p>
+        </form>
+    </section>
+
+    <div id="shell" class="nx-app" hidden>
+        <a class="nx-skip" href="#vista">Saltar al contenido</a>
+        <aside class="nx-side">
+            <div class="nx-side__brand">
+                <span class="fi-brand on-dark" translate="no"><span class="fi-brand-mark" aria-hidden="true"></span>@producto</span>
+            </div>
+            <label class="nx-org"><span>Organización</span><b id="orgNombre"></b><select id="orgSel" class="form-select form-select-sm" hidden></select></label>
+            <div class="nx-side__spacer"></div>
+            <div class="nx-side__foot">
+                <span id="who" class="nx-who"></span>
+                <button class="nx-iconbtn" id="logout" aria-label="Cerrar sesión" title="Cerrar sesión"><i class="ph ph-sign-out" aria-hidden="true"></i></button>
+            </div>
+        </aside>
+
+        <main id="vista" class="nx-main" tabindex="-1">
+            <header class="nx-head">
+                <div>
+                    <p class="fi-eyebrow" id="eyebrow"></p>
+                    <h1 id="titulo"></h1>
+                    <p class="nx-head__sub" id="bajada"></p>
+                </div>
+                <div class="nx-head__actions">
+                    <button class="btn btn-primary" id="btnNuevo"><i class="ph ph-plus" aria-hidden="true"></i> Nuevo ticket</button>
+                </div>
+            </header>
+            <p class="nx-error" id="msg" role="alert"></p>
+            <div id="contenido"></div>
+        </main>
+    </div>
+
+    <dialog id="dlgNuevo" class="nx-dialog" aria-labelledby="nuevoTitulo">
+        <form id="frmNuevo">
+            <div class="nx-dialog__head"><p class="fi-eyebrow">Mesa de ayuda</p><h2 id="nuevoTitulo">Nuevo ticket</h2></div>
+            <div class="nx-fields">
+                <label class="nx-field nx-field--full"><span>Asunto <em aria-hidden="true">*</em></span>
+                    <input name="asunto" class="form-control" required minlength="3" maxlength="200" placeholder="Por ejemplo: no puedo emitir facturas en SAP"></label>
+                <label class="nx-field" id="campoSolicitante" hidden><span>A nombre de</span><select name="solicitante_id" class="form-select"></select>
+                    <small>Para solicitudes que llegan por teléfono o correo.</small></label>
+                <label class="nx-field"><span>Área</span><select name="area_id" class="form-select"></select></label>
+                <label class="nx-field"><span>Prioridad</span><select name="prioridad" class="form-select"></select></label>
+                <label class="nx-field nx-field--full"><span>Descripción <em aria-hidden="true">*</em></span>
+                    <textarea name="descripcion" class="form-control" rows="5" required maxlength="5000" placeholder="Qué pasa, desde cuándo y qué intentaste."></textarea></label>
+            </div>
+            <div class="nx-dialog__foot">
+                <p class="nx-error" role="alert"></p>
+                <button class="btn btn-outline-secondary" type="button" data-cerrar>Cancelar</button>
+                <button class="btn btn-primary">Crear ticket</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="dlg" class="nx-dialog nx-dialog--wide" aria-labelledby="dlgTitulo"><form id="frm"></form></dialog>
+
+    <div id="toasts" class="nx-toasts" aria-live="polite"></div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@supabase/supabase-js@@2"></script>
+    <script src="~/js/app.js" asp-append-version="true"></script>
+}
