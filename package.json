@@ -1,0 +1,10 @@
+{
+  "name": "ticketeasy",
+  "private": true,
+  "scripts": {
+    "e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0"
+  }
+}
