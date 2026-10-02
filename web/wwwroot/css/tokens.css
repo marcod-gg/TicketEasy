@@ -1,0 +1,86 @@
+/* Fractional IT · tokens de marca
+   Fuente: Portal Web (Portal Web/index.html). Mismos valores, con prefijo --fi- para convivir con frameworks.
+   Fuentes: <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&family=DM+Serif+Display&display=swap" rel="stylesheet">
+   Tema: sigue al sistema; data-theme="light|dark" en <html> lo fuerza. */
+
+:root {
+  /* Superficies (papel cálido → tinta) */
+  --fi-bg: #f7f3ee;
+  --fi-surface: #fffdfa;
+  --fi-cream: #efe4d6;
+  --fi-line: #e2d8cc;
+  --fi-line-soft: rgb(60 30 10 / .08);
+
+  /* Texto: 4 niveles */
+  --fi-ink: #171310;
+  --fi-ink-2: #3a322c;
+  --fi-muted: #6b6159;
+  --fi-faint: #8f847a;          /* solo pistas secundarias (≥ 3:1), nunca texto que haya que leer */
+
+  /* Marca: terracota */
+  --fi-accent: #b4532e;         /* relleno de CTA y texto de acento sobre bg/surface */
+  --fi-accent-hover: #963f1f;   /* hover y texto de acento sobre crema */
+  --fi-accent-light: #f0a47c;   /* solo sobre tinta (marca, énfasis del hero) */
+  --fi-accent-subtle: color-mix(in srgb, var(--fi-accent) 10%, var(--fi-surface));
+  --fi-on-accent: #fffaf5;
+
+  /* Bloques de tinta (siempre oscuros, en ambos temas) */
+  --fi-dark: #171310;
+  --fi-dark-2: #221c18;
+  --fi-dark-line: rgb(255 240 225 / .1);
+  --fi-dark-ink: #f5ede4;
+  --fi-dark-muted: #b8aca1;
+
+  /* Semánticos: derivados de la paleta de diagramas del Portal; ≥ 4.5:1 sobre bg, surface y crema */
+  --fi-success: #3f6b3c;
+  --fi-warning: #8a5d0c;
+  --fi-danger: #a8393f;
+  --fi-info: #486379;
+
+  /* Tipografía */
+  --fi-font: "Geist", system-ui, sans-serif;
+  --fi-font-mono: "Geist Mono", ui-monospace, monospace;
+  --fi-font-display: "DM Serif Display", Georgia, serif;   /* solo el logotipo */
+
+  /* Forma y movimiento */
+  --fi-r-sm: 8px;
+  --fi-r: 14px;
+  --fi-r-lg: 18px;
+  --fi-r-pill: 999px;
+  --fi-shadow: 0 1px 2px rgb(60 30 10 / .06), 0 24px 60px -20px rgb(60 30 10 / .28);
+  --fi-shadow-sm: 0 0 0 1px rgb(60 30 10 / .06), 0 1px 2px rgb(60 30 10 / .06), 0 4px 12px -4px rgb(60 30 10 / .08);
+  --fi-ease: cubic-bezier(.16, 1, .3, 1);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fi-bg: #14100d; --fi-surface: #1c1713; --fi-cream: #221b16; --fi-line: #2f2721; --fi-line-soft: rgb(255 240 225 / .08);
+    --fi-ink: #f5ede4; --fi-ink-2: #ddd2c7; --fi-muted: #a99d92; --fi-faint: #7d7166;
+    --fi-accent: #d9774d; --fi-accent-hover: #ec8f66; --fi-on-accent: #1a0f09;
+    --fi-dark: #0e0b09; --fi-dark-2: #1a1512;
+    --fi-success: #8fc28a; --fi-warning: #dcb066; --fi-danger: #e8878b; --fi-info: #8fb0c9;
+    --fi-shadow: 0 24px 60px -20px rgb(0 0 0 / .7);
+    --fi-shadow-sm: 0 0 0 1px rgb(255 240 225 / .08);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --fi-bg: #14100d; --fi-surface: #1c1713; --fi-cream: #221b16; --fi-line: #2f2721; --fi-line-soft: rgb(255 240 225 / .08);
+  --fi-ink: #f5ede4; --fi-ink-2: #ddd2c7; --fi-muted: #a99d92; --fi-faint: #7d7166;
+  --fi-accent: #d9774d; --fi-accent-hover: #ec8f66; --fi-on-accent: #1a0f09;
+  --fi-dark: #0e0b09; --fi-dark-2: #1a1512;
+  --fi-success: #8fc28a; --fi-warning: #dcb066; --fi-danger: #e8878b; --fi-info: #8fb0c9;
+  --fi-shadow: 0 24px 60px -20px rgb(0 0 0 / .7);
+  --fi-shadow-sm: 0 0 0 1px rgb(255 240 225 / .08);
+  color-scheme: dark;
+}
+
+/* Logotipo: círculo de tinta con anillo terracota + "Fractional IT" en serif, "IT" en acento claro */
+.fi-brand { display: inline-flex; align-items: center; gap: 10px; font: 400 1.3rem/1 var(--fi-font-display); text-decoration: none; color: inherit; }
+.fi-brand em { font-style: normal; color: var(--fi-accent); }
+.fi-brand-mark { width: 26px; height: 26px; border-radius: 50%; background: #171310; box-shadow: inset 0 0 0 3px var(--fi-accent-light), 0 0 0 1px rgb(255 240 225 / .25); flex: none; }
+.fi-on-dark .fi-brand em, .fi-brand.on-dark em { color: var(--fi-accent-light); }
+
+/* Etiqueta mono sobre títulos */
+.fi-eyebrow { font: 500 .78rem/1 var(--fi-font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fi-accent); }

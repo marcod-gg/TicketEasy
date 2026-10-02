@@ -1,0 +1,58 @@
+/* Fractional IT · puente para Bootstrap 5.3
+   Cargar DESPUÉS de bootstrap.css y de tokens.css. Mapea las variables de Bootstrap a los tokens --fi-*,
+   así los componentes (tablas, formularios, modales, dropdowns) quedan en la marca y siguen el tema. */
+
+:root, [data-bs-theme] {
+  --bs-body-bg: var(--fi-bg);
+  --bs-body-color: var(--fi-ink);
+  --bs-emphasis-color: var(--fi-ink);
+  --bs-secondary-color: var(--fi-muted);
+  --bs-tertiary-color: var(--fi-faint);
+  --bs-secondary-bg: var(--fi-cream);
+  --bs-tertiary-bg: var(--fi-surface);
+  --bs-border-color: var(--fi-line);
+  --bs-border-color-translucent: var(--fi-line-soft);
+  --bs-body-font-family: var(--fi-font);
+  --bs-font-monospace: var(--fi-font-mono);
+  --bs-link-color: var(--fi-accent);
+  --bs-link-hover-color: var(--fi-accent-hover);
+  --bs-link-color-rgb: 180, 83, 46;
+  --bs-primary: var(--fi-accent);
+  --bs-primary-rgb: 180, 83, 46;
+  --bs-success: var(--fi-success);
+  --bs-warning: var(--fi-warning);
+  --bs-danger: var(--fi-danger);
+  --bs-info: var(--fi-info);
+  --bs-danger-text-emphasis: var(--fi-danger);
+  --bs-border-radius: var(--fi-r-sm);
+  --bs-border-radius-lg: var(--fi-r);
+  --bs-focus-ring-color: color-mix(in srgb, var(--fi-accent) 35%, transparent);
+}
+
+/* Bootstrap usa RGB para enlaces y focus: repetir el acento oscuro */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]), :root:not([data-theme="light"]) [data-bs-theme] { --bs-link-color-rgb: 217, 119, 77; --bs-primary-rgb: 217, 119, 77; }
+}
+:root[data-theme="dark"], :root[data-theme="dark"] [data-bs-theme] { --bs-link-color-rgb: 217, 119, 77; --bs-primary-rgb: 217, 119, 77; }
+
+body { -webkit-font-smoothing: antialiased; }
+
+.btn { --bs-btn-font-weight: 500; --bs-btn-border-radius: var(--fi-r-pill); }
+.btn-primary {
+  --bs-btn-bg: var(--fi-accent); --bs-btn-border-color: var(--fi-accent); --bs-btn-color: var(--fi-on-accent);
+  --bs-btn-hover-bg: var(--fi-accent-hover); --bs-btn-hover-border-color: var(--fi-accent-hover); --bs-btn-hover-color: var(--fi-on-accent);
+  --bs-btn-active-bg: var(--fi-accent-hover); --bs-btn-active-border-color: var(--fi-accent-hover); --bs-btn-active-color: var(--fi-on-accent);
+  --bs-btn-disabled-bg: var(--fi-accent); --bs-btn-disabled-border-color: var(--fi-accent); --bs-btn-disabled-color: var(--fi-on-accent);
+}
+.btn-outline-secondary {
+  --bs-btn-color: var(--fi-ink); --bs-btn-border-color: var(--fi-line);
+  --bs-btn-hover-bg: transparent; --bs-btn-hover-color: var(--fi-ink); --bs-btn-hover-border-color: var(--fi-ink);
+  --bs-btn-active-bg: var(--fi-cream); --bs-btn-active-color: var(--fi-ink); --bs-btn-active-border-color: var(--fi-ink);
+}
+
+.form-control, .form-select { background-color: var(--fi-surface); border-color: var(--fi-line); color: var(--fi-ink); }
+.form-control:focus, .form-select:focus { border-color: var(--fi-accent); box-shadow: 0 0 0 .2rem var(--bs-focus-ring-color); }
+
+.table { --bs-table-bg: transparent; --bs-table-color: var(--fi-ink); --bs-table-border-color: var(--fi-line); --bs-table-hover-bg: var(--fi-accent-subtle); }
+
+:focus-visible { outline: 2px solid var(--fi-accent); outline-offset: 3px; }
