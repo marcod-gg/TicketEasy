@@ -117,6 +117,45 @@ begin
   assert v = 'closed', 'Confirmar no cerró el ticket';
 end $$;
 
+-- Comunicados: el owner publica; los admitidos ven solo los vigentes; nadie más publica ni cambia el autor
+do $$
+declare
+  ws uuid := current_setting('prueba.ws')::uuid;
+  n int;
+begin
+  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1"}', true);
+  insert into ticketeasy.announcements (workspace_id, message, severity) values (ws, 'Correo caído', 'danger');
+  insert into ticketeasy.announcements (workspace_id, message, starts_at) values (ws, 'Mantención mañana', now() + interval '1 day');
+  insert into ticketeasy.announcements (workspace_id, message, is_active) values (ws, 'Oculto', false);
+  insert into ticketeasy.announcements (workspace_id, message, starts_at, ends_at) values (ws, 'Ya pasó', now() - interval '2 hours', now() - interval '1 hour');
+  begin
+    update ticketeasy.announcements set created_by = '00000000-0000-0000-0000-0000000000b1' where workspace_id = ws;
+    raise exception 'Se pudo cambiar el autor de un comunicado';
+  exception when insufficient_privilege then null;
+  end;
+
+  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1"}', true);
+  select count(*) into n from ticketeasy.announcements;
+  assert n = 1, format('Ana ve %s comunicados, se esperaba solo el vigente', n);
+  begin
+    insert into ticketeasy.announcements (workspace_id, message) values (ws, 'Intento');
+    raise exception 'Ana publicó un comunicado';
+  exception when insufficient_privilege then null;
+  end;
+
+  -- Publican owner, supervisor de todo el workspace y admin de la empresa; un agente no
+  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a2"}', true);
+  begin
+    insert into ticketeasy.announcements (workspace_id, message) values (ws, 'Intento del agente');
+    raise exception 'Un agente publicó un comunicado';
+  exception when insufficient_privilege then null;
+  end;
+
+  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b2"}', true);
+  select count(*) into n from ticketeasy.announcements;
+  assert n = 0, 'Beto ve comunicados de un workspace del que está bloqueado';
+end $$;
+
 -- Cobro vencido hace 3 días: gracia, solo lectura
 reset role;
 update public.suscripciones set proximo_cobro = current_date - 3 where id = '00000000-0000-0000-0000-0000000000d2';
@@ -147,6 +186,29 @@ begin
   select count(*) into n from ticketeasy.tickets;
   assert n = 0, 'Pasada la gracia Ana todavía ve tickets';
   raise notice 'TicketEasy: acceso, cupo, herencia, listas, ciclo de vida y gracia — todo OK';
+end $$;
+
+-- Marca: solo el admin de la empresa la cambia, con colores y logo válidos; los miembros la ven
+do $$
+declare
+  e uuid := '00000000-0000-0000-0000-0000000000e1';
+begin
+  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1"}', true);
+  begin
+    perform public.actualizar_marca(e, '{"primario":"#1d4ed8"}');
+    raise exception 'Una solicitante cambió la marca';
+  exception when insufficient_privilege then null;
+  end;
+  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000a1"}', true);
+  begin
+    perform public.actualizar_marca(e, '{"logo_url":"javascript:alert(1)"}');
+    raise exception 'Se aceptó un logo que no es https';
+  exception when check_violation then null;
+  end;
+  perform public.actualizar_marca(e, '{"primario":"#1d4ed8","oscuro":"#0b1220","logo_url":null}');
+  perform set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1"}', true);
+  assert (select marca from public.empresas where id = e) = '{"primario":"#1d4ed8","oscuro":"#0b1220"}', 'Ana no ve la marca guardada';
+  raise notice 'Marca de la empresa — OK';
 end $$;
 
 rollback;

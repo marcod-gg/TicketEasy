@@ -1,0 +1,397 @@
+/* Usa solo tokens --c-* (los define dataviews-tokens.css u otra fuente de tema; modo oscuro y alto contraste incluidos). */
+
+/* Transición fluida de la tabla (filtros, orden, agrupado, paginado, columnas): la envuelve tx() en DataViews
+   con la View Transitions API. Se nombra TODO el widget (no solo la tabla) para que el popover abierto quede
+   dentro del mismo snapshot y no pase por detrás de la tabla durante la animación. */
+.dv { view-transition-name: dv-root; }
+::view-transition-old(dv-root), ::view-transition-new(dv-root) {
+  animation-duration: .26s;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+/* Card contenedora: separa el componente del fondo --c-bg.
+   Sin overflow:hidden para no recortar los popovers; las secciones de borde a borde redondean sus esquinas. */
+.dv { --dv-r: 10px; --dv-card-r: 18px; font-size: .84rem; color: var(--c-text-b); background: var(--c-surface);
+  border: 1.5px solid var(--c-border); border-radius: var(--dv-card-r); box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06); }
+.dv :focus-visible { outline: 2px solid var(--c-brand); outline-offset: 2px; }
+.dv-muted { color: var(--c-text-m); }
+.dv button, .dv select, .dv input { font: inherit; color: inherit; }
+/* Bootstrap le da margin-bottom (y otra hoja un font-size menor) a todo <label>: se anula dentro del componente. */
+.dv label { margin-bottom: 0; font-size: inherit; }
+.dv select, .dv input[type=text], .dv input[type=number], .dv input[type=date], .dv input[type=search] {
+  border: 1px solid var(--c-border); border-radius: 8px; background: var(--c-bg); color: var(--c-text-h); padding: 6px 9px; min-width: 0;
+}
+
+/* Botones */
+.dv-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border: 1px solid var(--c-border); border-radius: 9px;
+  background: var(--c-surface); color: var(--c-text-b); cursor: pointer; list-style: none; white-space: nowrap; user-select: none; }
+.dv-btn::-webkit-details-marker { display: none; }
+.dv-btn:hover { border-color: var(--c-border-strong); color: var(--c-text-h); }
+.dv-link { background: none; border: 0; padding: 4px 0; color: var(--c-brand); font-weight: 600; cursor: pointer; }
+.dv-link:hover { text-decoration: underline; }
+.dv-icon { background: none; border: 0; padding: 4px 6px; border-radius: 6px; color: var(--c-text-m); cursor: pointer; }
+.dv-icon:hover { background: var(--c-bg); color: var(--c-text-h); }
+.dv-seg { display: inline-flex; border: 1px solid var(--c-border); border-radius: 9px; overflow: hidden; background: var(--c-surface); }
+.dv-seg button { border: 0; background: none; padding: 7px 12px; cursor: pointer; color: var(--c-text-m); font-weight: 600; }
+.dv-seg button + button { border-left: 1px solid var(--c-border); }
+.dv-seg button.is-active { background: var(--c-brand-emphasis); color: #fff; }
+
+/* Pestañas de vistas */
+.dv-tabs { display: flex; align-items: center; gap: 6px; border-bottom: 1.5px solid var(--c-border); padding: 6px 16px 0; }
+.dv-tabs__list { display: flex; gap: 2px; overflow-x: auto; overflow-y: hidden; flex: 1; min-width: 0; }
+.dv-tab { border: 0; background: none; padding: 9px 12px; border-bottom: 2.5px solid transparent; margin-bottom: -1.5px; color: var(--c-text-m);
+  font-weight: 600; cursor: pointer; white-space: nowrap; }
+.dv-tab:hover { color: var(--c-text-h); }
+.dv-tab.is-active { color: var(--c-brand); border-bottom-color: var(--c-brand); }
+.dv-tabs__edit { margin: 4px 0; width: 160px; }
+.dv-tabs .dv-btn { border: 0; background: none; padding: 7px 9px; }
+
+/* Barra de herramientas: tipos de vista a la izquierda, herramientas (solo icono) a la derecha */
+.dv-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; padding: 14px 16px 12px; }
+.dv-seg button i { font-size: .72rem; margin-right: 3px; }
+/* Pantallas chicas: el selector de diseño ocupa todo el ancho (botones iguales); las herramientas bajan a la fila siguiente. */
+@media (max-width: 560px) {
+  .dv-toolbar > .dv-seg { flex: 1 1 100%; }
+  .dv-toolbar > .dv-seg button { flex: 1 1 0; }
+}
+.dv-tools { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.dv-tools__sep { width: 1px; height: 20px; margin: 0 6px; background: var(--c-border); }
+
+/* Popovers (<details>) */
+.dv-pop { position: relative; }
+.dv-pop[open] > .dv-btn { border-color: var(--c-brand); color: var(--c-brand); }
+.dv-pop__panel { position: absolute; top: calc(100% + 6px); z-index: 30; min-width: 240px; max-width: min(560px, calc(100vw - 32px));
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--dv-r); box-shadow: 0 10px 30px rgba(0,0,0,.14); padding: 10px; }
+.dv-pop__panel--left { left: 0; }
+.dv-pop__panel--right { right: 0; }
+.dv-pop--menu .dv-pop__panel { min-width: 170px; padding: 4px; }
+.dv-menuitem { display: flex; width: 100%; gap: 8px; align-items: center; border: 0; background: none; padding: 7px 10px; border-radius: 6px; cursor: pointer; text-align: left; }
+.dv-menuitem:hover:not(:disabled) { background: var(--c-bg); }
+.dv-menuitem:disabled { opacity: .45; cursor: not-allowed; }
+.dv-menuitem--danger { color: var(--c-nuevo) !important; }
+.dv-config { min-width: 240px; padding: 6px 10px 10px; border-top: 1px solid var(--c-border); margin-top: 4px; }
+.dv-menuitem i { width: 16px; text-align: center; color: var(--c-brand); }
+.dv-menunote { margin: 4px 0 2px; padding: 6px 10px 2px; border-top: 1px solid var(--c-border); font-size: .72rem; color: var(--c-text-m); }
+
+/* Herramientas: icono; el nombre se despliega con hover, foco o menú abierto (sin borde ni fondo en reposo). */
+.dv-tool > .dv-btn, .dv-search { position: relative; display: flex; align-items: center; height: 34px; padding: 0 10px; gap: 0;
+  border: 1px solid transparent; border-radius: 9px; background: none; color: var(--c-text-m); transition: background .15s, color .15s; }
+.dv-tool > .dv-btn:hover, .dv-tool > .dv-btn:focus-visible, .dv-search:hover, .dv-search:focus-within, .dv-search.has-value { background: var(--c-bg); color: var(--c-text-h); border-color: transparent; }
+.dv-tool[open] > .dv-btn { background: var(--c-bg); color: var(--c-brand); border-color: transparent; }
+/* --dv-tool-ease: despliegue y cierre con la misma curva suave. */
+.dv-tools { --dv-tool-t: .35s; --dv-tool-ease: cubic-bezier(.4,0,.2,1); }
+.dv-tool__label { max-width: 0; overflow: hidden; opacity: 0; white-space: nowrap;
+  transition: max-width var(--dv-tool-t) var(--dv-tool-ease), opacity var(--dv-tool-t) var(--dv-tool-ease), margin-left var(--dv-tool-t) var(--dv-tool-ease); }
+.dv-tool > .dv-btn:hover .dv-tool__label, .dv-tool > .dv-btn:focus-visible .dv-tool__label, .dv-tool[open] .dv-tool__label { max-width: 180px; opacity: 1; margin-left: 6px; }
+.dv-tool__badge { position: absolute; top: 1px; right: 1px; min-width: 15px; height: 15px; padding: 0 4px; border-radius: 999px;
+  background: var(--c-brand-emphasis); color: #fff; font-size: .6rem; font-weight: 700; line-height: 15px; text-align: center; }
+/* Buscar: el campo se despliega con hover/foco y queda abierto mientras tenga texto. */
+.dv-search { cursor: text; }
+.dv .dv-search input { width: 0; padding: 0; border: 0; background: none; opacity: 0; outline: none;
+  transition: width var(--dv-tool-t) var(--dv-tool-ease), opacity var(--dv-tool-t) var(--dv-tool-ease), margin-left var(--dv-tool-t) var(--dv-tool-ease); }
+.dv .dv-search:hover input, .dv .dv-search:focus-within input, .dv .dv-search.has-value input { width: 200px; opacity: 1; margin-left: 8px; }
+.dv-search:focus-within { outline: 2px solid var(--c-brand); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .dv-tool__label, .dv .dv-search input { transition: none; } }
+
+/* Editores */
+.dv-editor { display: flex; flex-direction: column; gap: 8px; }
+.dv-editor__empty { margin: 0; }
+.dv-editor__row { display: flex; flex-wrap: nowrap; gap: 6px; align-items: center; } /* una línea por regla */
+.dv-editor__row > select, .dv-editor__row > input { flex: none; }
+.dv-editor__row--group { align-items: flex-start; }
+.dv-editor__row--group > .dv-editor__join, .dv-editor__row--group > .dv-icon { margin-top: 8px; }
+.dv-editor__add { display: flex; gap: 16px; flex-wrap: wrap; }
+/* Grupo de filtros: caja con sus propias reglas (como un paréntesis). */
+.dv-fgroup { display: flex; flex-direction: column; gap: 8px; padding: 8px 10px; border: 1px solid var(--c-border); border-radius: 8px; background: var(--c-bg); }
+/* Filtros: el panel crece con la regla más larga en vez de partirla; en pantallas angostas, scroll horizontal. */
+.dv-pop--filters .dv-pop__panel { width: max-content; min-width: min(420px, calc(100vw - 32px)); max-width: calc(100vw - 32px); max-height: min(70vh, 560px); overflow: auto; }
+.dv-editor__join { width: 44px; color: var(--c-text-m); font-size: .76rem; }
+select.dv-editor__join { width: 56px; }
+.dv-check { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+
+/* Chips de filtros */
+.dv-fsum { margin: 0 16px 12px; border: 1px solid var(--c-border); border-radius: 10px; background: var(--c-surface-2); }
+.dv-fsum > summary { display: flex; align-items: center; gap: 8px; padding: 7px 12px; cursor: pointer; list-style: none; font-size: .8rem; font-weight: 600; color: var(--c-text-b); border-radius: 10px; }
+.dv-fsum > summary::-webkit-details-marker { display: none; }
+.dv-fsum > summary > i:first-child { color: var(--c-brand); font-size: .72rem; }
+.dv-fsum > summary:hover { color: var(--c-text-h); }
+.dv-fsum__chev { margin-left: auto; font-size: .62rem; color: var(--c-text-m); transition: transform .2s ease; }
+.dv-fsum[open] .dv-fsum__chev { transform: rotate(180deg); }
+.dv-fsum__body { display: grid; gap: 6px; justify-items: start; padding: 0 12px 10px; }
+.dv-fsum__row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.dv-fsum__cat { min-width: 84px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--c-text-m); }
+.dv-fchip q { quotes: '«' '»'; }
+.dv-fchip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 4px 3px 10px; border-radius: 999px; background: var(--c-brand-light); color: var(--c-text-h); font-size: .78rem; }
+.dv-fchip button { border: 0; background: none; cursor: pointer; padding: 2px 6px; border-radius: 999px; color: inherit; }
+.dv-fchip button:hover { background: rgba(0,0,0,.08); }
+.dv-count { display: inline-flex; align-items: center; gap: 4px; color: var(--c-text-m); font-size: .78rem; }
+
+.dv-notice { display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin: 0 16px 10px; border-radius: 8px;
+  background: var(--c-espera-bg); border: 1px solid var(--c-espera); color: var(--c-text-h); }
+.dv-notice .dv-icon { margin-left: auto; }
+.dv-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 48px 16px; text-align: center; color: var(--c-text-m);
+  margin: 0 16px 16px; background: var(--c-surface-2); border: 1.5px dashed var(--c-border); border-radius: var(--dv-r); }
+
+/* Botón copiar (ID, nombre): 22px, tinte de marca; al pasar el mouse, relleno con texto blanco. */
+.dv-copy { flex-shrink: 0; border: none; background: var(--c-brand-light); color: var(--c-brand); border-radius: 6px; width: 22px; height: 22px;
+  cursor: pointer; display: grid; place-items: center; padding: 0; font-size: .58rem; transition: background .12s, color .12s; }
+.dv-copy:hover { background: var(--c-brand-emphasis); color: #fff; }
+.dv-copy:focus-visible { outline: 2px solid var(--c-brand); outline-offset: 2px; }
+
+/* Valores */
+.dv-title { font-weight: 600; color: var(--c-text-h); text-decoration: none; }
+a.dv-title:hover { color: var(--c-brand); text-decoration: underline; }
+.dv-tag { --tag: var(--c-text-m); display: inline-flex; align-items: center; gap: 5px; padding: 1px 8px; border-radius: 999px; font-size: .74rem; font-weight: 600;
+  white-space: nowrap; color: var(--c-text-h); background: color-mix(in srgb, var(--tag) 16%, transparent); }
+.dv-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--tag); }
+
+/* Grupos */
+.dv-group { display: flex; align-items: center; gap: 8px; width: 100%; border: 0; background: none; padding: 8px 4px; cursor: pointer; text-align: left; font-weight: 600; }
+.dv-group__chev { width: 12px; font-size: .7rem; color: var(--c-text-m); }
+.dv-group__count { color: var(--c-text-m); font-weight: 500; }
+.dv-group__sum { margin-left: auto; color: var(--c-text-m); font-weight: 500; }
+
+/* Tabla */
+/* De borde a borde dentro de la card: sin caja anidada. */
+.dv-tablewrap { overflow-x: auto; border-top: 1px solid var(--c-border); border-radius: 0 0 var(--dv-card-r) var(--dv-card-r); }
+.dv-table { width: 100%; min-width: 100%; border-collapse: collapse; table-layout: fixed; }
+.dv-table th, .dv-table td { padding: 8px 12px; border-bottom: 1px solid var(--c-border); text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* El ancho de cada columna anima suave salvo mientras se arrastra el borde (ahí sigue el cursor 1:1). */
+.dv-table:not(.dv-resizing) th { transition: width .16s cubic-bezier(.2, .8, .2, 1); }
+.dv-table th { position: sticky; top: 0; background: var(--c-surface-2); padding: 0; }
+/* Borde derecho arrastrable para redimensionar la columna. */
+.dv-resizer { position: absolute; top: 0; right: 0; height: 100%; width: 9px; cursor: col-resize; touch-action: none; user-select: none; z-index: 2; }
+.dv-resizer::after { content: ''; position: absolute; top: 22%; right: 3px; height: 56%; width: 2px; border-radius: 2px; background: transparent; transition: background .15s; }
+.dv-resizer:hover::after, .dv-resizer.is-resizing::after { background: var(--c-brand); }
+.dv-table th:first-child .dv-th, .dv-table td:first-child { padding-left: 16px; }
+.dv-table tbody tr:last-child td { border-bottom: 0; }
+.dv-th { display: flex; align-items: center; gap: 5px; width: 100%; border: 0; background: none; padding: 9px 12px; cursor: pointer;
+  font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--c-text-m); }
+.dv-th:hover { color: var(--c-text-h); }
+.dv-th i { font-size: .65rem; color: var(--c-brand); }
+.dv-td--title { white-space: nowrap; }
+.dv-idcell { display: inline-flex; align-items: center; gap: 8px; }
+.dv-idcell .dv-title { font-variant-numeric: tabular-nums; }
+.dv-table tbody tr:not(.dv-grouprow):hover { background: var(--c-bg); }
+.dv-grouprow td { padding: 2px 8px; background: var(--c-bg); }
+
+/* Paginación: pie de la card */
+.dv-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 8px 16px; border-top: 1px solid var(--c-border); }
+.dv-pager { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-left: auto; color: var(--c-text-m); font-size: .78rem; }
+.dv-pager label { display: inline-flex; align-items: center; gap: 8px; }
+.dv-pager__nav { display: inline-flex; align-items: center; gap: 4px; }
+.dv-pager__nav .dv-icon { min-width: 32px; min-height: 32px; }
+.dv-pager__nav .dv-icon:disabled { opacity: .35; cursor: default; background: none; }
+/* Solo la última sección redondea las esquinas inferiores de la card. */
+.dv-tablewrap:not(:last-child) { border-radius: 0; }
+
+/* Tablero */
+/* Tablero: columna en --c-bg, tarjetas en --c-surface. */
+.dv-board { display: flex; gap: 14px; overflow-x: auto; align-items: flex-start; padding: 0 16px 16px; }
+/* Las columnas se reparten todo el ancho (mínimo 240px, fitColumns en rules.ts); las que no caben van a .dv-colbar. */
+.dv-col { --tag: var(--c-text-m); flex: 1 1 0; min-width: min(240px, 100%); max-height: 70vh; display: flex; flex-direction: column;
+  background: var(--c-bg); border: 1px solid var(--c-border); border-radius: 14px; transition: background .15s; }
+.dv-col.is-over { background: var(--c-brand-light); }
+.dv-col.is-over .dv-col__body { outline: 2px dashed var(--c-brand); outline-offset: -5px; border-radius: 10px; }
+.dv-col__head { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--c-border);
+  border-radius: 14px 14px 0 0; background: var(--c-bg); font-size: .78rem; font-weight: 700; color: var(--c-text-h); }
+.dv-col__dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; background: var(--tag); }
+.dv-col__icon { width: 22px; height: 22px; flex-shrink: 0; border-radius: 6px; display: grid; place-items: center; font-size: .66rem;
+  color: var(--tag); background: color-mix(in srgb, var(--tag) 14%, transparent); }
+.dv-col__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv-col__count { font-family: 'Roboto Mono', monospace; font-size: .78rem; font-weight: 700; color: var(--c-text-h); font-variant-numeric: tabular-nums; } /* texto en negrita, sin badge */
+.dv .dv-col__collapse { flex: 0 0 auto; width: 26px; height: 26px; margin: -4px -6px -4px 0; border: 0; border-radius: 6px; background: none;
+  color: var(--c-text-m); cursor: pointer; font-size: .72rem; }
+.dv .dv-col__collapse:hover { background: var(--c-surface-2); color: var(--c-brand); }
+.dv .dv-col__collapse:focus-visible { outline: 2px solid var(--c-brand); outline-offset: 1px; }
+.dv-col__body { display: flex; flex-direction: column; gap: 10px; padding: 10px; overflow-y: auto; overflow-x: hidden; }
+/* Transición al abrir una columna desde la barra (View Transitions API, BoardView.expand): solo se animan las columnas
+   (nombre dv-col-N); la página completa no hace el fundido por defecto. */
+::view-transition-group(*) { animation-duration: .55s; animation-timing-function: cubic-bezier(.2, .8, .2, 1); }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+
+/* Barra de columnas colapsadas: lateral derecha (200px = bar de fitColumns) o fila superior en tableros angostos. */
+.dv-colbar { display: flex; min-width: 0; max-width: 100%; border: 1px solid var(--c-border); border-radius: 12px; overflow: hidden; background: var(--c-bg); }
+.dv-colbar--side { flex: 0 0 200px; flex-direction: column; align-self: flex-start; }
+.dv-colbar--top { flex: 1 1 100%; }
+.dv-board--bar-top { flex-wrap: wrap; }
+/* Un solo grupo (como el selector Tabla/Tablero): botones pegados con divisores; nunca más ancho que su espacio. */
+.dv .dv-colbar__item { --tag: var(--c-text-m); display: flex; align-items: center; gap: 8px; min-width: 0; padding: 10px 12px; font-size: .78rem;
+  font-weight: 700; text-align: left; color: var(--c-text-h); background: none; border: 0; border-radius: 0; cursor: pointer; transition: background .15s; }
+.dv-colbar--side .dv-colbar__item + .dv-colbar__item { border-top: 1px solid var(--c-border); }
+.dv-colbar--top .dv-colbar__item + .dv-colbar__item { border-left: 1px solid var(--c-border); }
+.dv-colbar__item:hover { background: var(--c-surface); }
+.dv-colbar__item:focus-visible { outline: 2px solid var(--c-brand); outline-offset: -2px; }
+.dv-colbar__item.is-over { background: var(--c-brand-light); outline: 2px dashed var(--c-brand); outline-offset: -4px; }
+.dv-colbar__item .dv-col__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Fila superior (angosto): los botones se reparten el ancho; solo icono + contador (el nombre queda en tooltip/aria). */
+.dv-colbar--top .dv-colbar__item { flex: 1 1 0; justify-content: center; gap: 6px; padding: 7px 6px; }
+.dv-colbar--top .dv-colbar__item:has(.dv-col__icon) .dv-col__name { display: none; }
+.dv-col__empty { margin: 0; padding: 20px 0; text-align: center; color: var(--c-text-faint); font-size: .74rem; }
+.dv-cardwrap { display: flex; flex-direction: column; }
+.dv-cardwrap[draggable=true], .dv-explorer__cell[draggable=true] { cursor: grab; }
+.dv-cardwrap.is-dragging { opacity: .5; }
+/* Tarjeta por defecto (RecordCard): acento del primer select, título, etiquetas, datos etiqueta: valor y pie de acciones */
+.dv-card { position: relative; flex: 1; display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  padding: 12px 14px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.05); transition: border-color .15s, box-shadow .15s; }
+.dv-card--accent { padding-left: 17px; }
+.dv-card--accent::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px; border-radius: 0 4px 4px 0; background: var(--accent); }
+.dv-card:hover { border-color: var(--c-border-strong); box-shadow: 0 4px 14px rgba(0,0,0,.08); }
+.dv-card .dv-title { font-size: .9rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+.dv-card__tags { display: flex; flex-wrap: wrap; gap: 5px; }
+.dv-card__meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 4px 14px; margin: 0; }
+.dv-card__meta > div { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.dv-card__meta dt { flex: 0 0 auto; font-size: .72rem; color: var(--c-text-m); }
+.dv-card__meta dd { min-width: 0; margin: 0; font-size: .8rem; font-weight: 500; color: var(--c-text-h); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv-card__v--number, .dv-card__v--date { font-variant-numeric: tabular-nums; }
+.dv-card__foot { display: flex; justify-content: flex-end; gap: 4px; margin-top: auto; padding-top: 8px; border-top: 1px solid var(--c-border); }
+@media (prefers-reduced-motion: reduce) { .dv-card { transition: none; } }
+
+@media (max-width: 640px) {
+  .dv-pager { margin-left: 0; }
+  .dv-pop__panel--left { left: auto; right: auto; }
+}
+
+/* Celda de acciones por fila (prop rowActions): fija al final, sin ordenar ni redimensionar */
+.dv-th--actions, .dv-td--actions { white-space: nowrap; text-align: right; }
+.dv-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.dv-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* Acciones por registro (fila y tarjeta): Editar en gris (ícono o ícono + texto), Eliminar siempre rojo */
+.dv .rp-act { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; height: 30px; min-width: 30px; padding: 0 .45rem;
+  border: 0; border-radius: 6px; background: transparent; color: var(--c-text-m); font: inherit; font-size: .82rem; cursor: pointer; text-decoration: none; }
+.dv .rp-act:hover { background: var(--c-surface-2); color: var(--c-text-h); }
+.dv .rp-act--danger, .dv .rp-act--danger:hover { color: var(--c-danger, var(--c-nuevo)); }
+.dv .rp-act:focus-visible { outline: 3px solid var(--c-brand); outline-offset: 1px; }
+
+/* Controles de grupo (groupActions): switch pequeño + papelera sin borde, a media opacidad hasta el hover */
+.dv-explorer__actions { opacity: .55; transition: opacity .15s; }
+.dv-explorer__actions:hover, .dv-explorer__actions:focus-within { opacity: 1; }
+.dv .dv-sec-switch { display: inline-flex; align-items: center; gap: .35rem; margin: 0; padding: 0; min-height: 0; font-size: .75rem; color: var(--c-text-m); cursor: pointer; }
+.dv .dv-sec-switch input { appearance: none; background-image: none; float: none; width: 26px; height: 15px; margin: 0; border: 0; border-radius: 999px;
+  background-color: var(--c-border-strong); position: relative; cursor: pointer; transition: background-color .15s; }
+.dv .dv-sec-switch input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 11px; height: 11px; border-radius: 50%; background: #fff; transition: transform .15s; }
+.dv .dv-sec-switch input:checked { background-color: var(--c-brand-emphasis); }
+.dv .dv-sec-switch input:checked::after { transform: translateX(11px); }
+.dv .dv-sec-switch input:focus-visible { outline: 3px solid var(--c-brand); outline-offset: 2px; }
+.dv .dv-sec-delete { border: 0; background: transparent; color: var(--c-danger, var(--c-nuevo)); cursor: pointer; padding: 2px 4px; border-radius: 4px; }
+.dv .dv-sec-delete:disabled { color: var(--c-text-faint); cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .dv-explorer__actions, .dv .dv-sec-switch input, .dv .dv-sec-switch input::after { transition: none; } }
+
+/* Segmentos (GroupRail) y tarjetas agrupadas (ExplorerView) */
+.dv-explorer { display: flex; gap: 1.5rem; align-items: flex-start; padding: 0 16px 16px; }
+.dv-explorer__list { flex: 0 0 264px; max-width: 264px; display: flex; flex-direction: column; gap: .4rem; position: sticky; top: 120px; }
+.dv-explorer__detail { flex: 1 1 auto; min-width: 0; }
+.dv .dv-explorer__item { display: flex; align-items: center; gap: .7rem; width: 100%; text-align: left; padding: .65rem .8rem; font: inherit;
+  border: 1px solid var(--c-border); border-radius: 10px; background: var(--c-surface); color: var(--c-text-h); cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
+.dv .dv-explorer__item:hover { background: var(--c-brand-light); }
+.dv .dv-explorer__item.is-active { background: var(--c-brand-emphasis); border-color: var(--c-brand-emphasis); color: #fff; }
+.dv .dv-explorer__item:focus-visible { outline: 3px solid var(--c-brand); outline-offset: 2px; }
+.dv-explorer__icon { width: 34px; height: 34px; border-radius: 8px; background: var(--c-brand-light); color: var(--c-brand); display: grid; place-items: center; flex: 0 0 auto; }
+.dv-explorer__item.is-active .dv-explorer__icon { background: rgba(255, 255, 255, .2); color: #fff; }
+.dv-explorer__name { flex: 1 1 auto; min-width: 0; font-weight: 600; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv-explorer__count { flex: 0 0 auto; background: color-mix(in srgb, var(--c-brand) 12%, transparent); color: var(--c-brand); border-radius: 999px; padding: .05rem .55rem; font-size: .75rem; font-weight: 600; }
+.dv-explorer__item.is-active .dv-explorer__count { background: rgba(255, 255, 255, .22); color: #fff; }
+.dv-explorer__head { display: flex; align-items: center; justify-content: space-between; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--c-text-h); font-weight: 600; padding-bottom: .6rem; margin-bottom: 1rem; border-bottom: 1px solid var(--c-border); }
+.dv-explorer__head i { margin-right: .4rem; color: var(--c-brand); }
+.dv-explorer__total { color: var(--c-text-m); }
+.dv-explorer__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.dv-explorer__cell { display: flex; flex-direction: column; } /* tarjetas de una fila con el mismo alto: el pie queda alineado */
+.dv-explorer__empty { padding: 2rem; text-align: center; color: var(--c-text-m); }
+.dv-explorer__list > .dv-explorer__item:first-child { margin-bottom: .35rem; }   /* "Todos" separado de los grupos */
+/* Segmentos en tabla y tablero (railBy): la vista ocupa el resto; sin el padding propio que ya pone .dv-explorer. */
+.dv-explorer--rail > .dv-explorer__detail .dv-board { padding: 0 0 16px; }
+.dv-explorer--rail > .dv-explorer__detail .dv-tablewrap { border: 1px solid var(--c-border); border-radius: var(--dv-r); }
+.dv-explorer--rail > .dv-explorer__detail > .dv-empty { margin: 0; }
+.dv-cards { padding: 0 16px 16px; }
+.dv-explorer--rail .dv-cards { padding: 0; }
+/* Pantallas chicas: la lista pasa a una barra arriba con ícono y cantidad (scroll horizontal); el nombre solo en el elegido. */
+@media (max-width: 767px) {
+  .dv-explorer { flex-direction: column; align-items: stretch; gap: .75rem; } /* stretch: la vista usa todo el ancho y la tabla hace scroll dentro */
+  .dv-explorer__list { position: static; flex: none; flex-direction: row; max-width: none; width: 100%; gap: .35rem;
+    overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+  .dv .dv-explorer__list > .dv-explorer__item { flex: 0 0 auto; width: auto; gap: .4rem; padding: .35rem .55rem; margin-bottom: 0; }
+  .dv-explorer__icon { width: 26px; height: 26px; border-radius: 6px; font-size: .8rem; }
+  .dv-explorer__item:not(.is-active) .dv-explorer__name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .dv-explorer__item.is-active .dv-explorer__name { max-width: 12rem; }
+}
+/* "Todos" agrupado: subtítulo por grupo sobre su cuadrícula */
+.dv-explorer__group + .dv-explorer__group { margin-top: 1.5rem; }
+.dv .dv-explorer__subhead { display: flex; align-items: center; gap: .5rem; margin: 0 0 .75rem; font-size: .9rem; font-weight: 700; color: var(--c-text-h); }
+.dv-explorer__subhead i { color: var(--c-brand); font-size: .8rem; }
+/* Tablero agrupado con tarjetas con onMove: tarjetas arrastrables y grupos que reciben el drop; acciones del grupo en su encabezado */
+.dv .dv-explorer__item.is-over, .dv-explorer__group.is-over { outline: 2px dashed var(--c-brand); outline-offset: 3px; background: var(--c-brand-light); border-radius: 10px; }
+.dv .dv-explorer__item.is-over { color: var(--c-text-h); }
+.dv-explorer__headend { display: flex; align-items: center; gap: .75rem; }
+.dv-explorer__actions { display: inline-flex; gap: .35rem; text-transform: none; letter-spacing: 0; }
+.dv-explorer__subhead .dv-explorer__actions { margin-left: auto; }
+.dv-explorer__subhead { width: 100%; }
+.dv-explorer__group .dv-explorer__empty { padding: 1rem; text-align: left; }
+/* Renombrar grupo con doble clic (onRenameGroup) */
+.dv-explorer__name-edit { cursor: text; border-radius: 4px; }
+.dv-explorer__name-edit:hover { background: var(--c-brand-light); }
+.dv .dv-explorer__rename { font: inherit; color: var(--c-text-h); background: var(--c-surface); border: 1px solid var(--c-brand); border-radius: 6px; padding: 1px 6px; min-width: 12ch; text-transform: none; letter-spacing: 0; }
+/* Encabezado de grupo de la tabla con controles (groupActions) y destino de arrastre de filas */
+.dv-grouphead { display: flex; align-items: center; gap: 8px; }
+.dv-grouphead .dv-group { flex: 1 1 auto; width: auto; min-width: 0; }
+.dv-grouphead .dv-explorer__actions { flex: 0 0 auto; padding-right: 4px; }
+.dv-grouphead:hover .dv-explorer__actions { opacity: 1; }
+.dv-table tbody tr[draggable="true"] { cursor: grab; }
+.dv-grouprow.is-over td { background: var(--c-brand-light); outline: 2px dashed var(--c-brand); outline-offset: -2px; }
+
+/* Orden personalizado de grupos (Ordenar → Orden de grupos) */
+.dv-gorder { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--c-border); }
+.dv-gorder__group + .dv-gorder__group { margin-top: 10px; }
+.dv-gorder__head { display: flex; align-items: baseline; gap: 8px; font-size: .78rem; font-weight: 600; color: var(--c-text-h); }
+.dv-gorder__head .dv-muted { font-weight: 400; }
+.dv-gorder__list { display: grid; gap: 2px; max-height: 260px; margin: 6px 0 0; padding: 0; overflow: auto; list-style: none; }
+.dv-gorder__list li { display: flex; align-items: center; gap: 2px; padding: 2px 4px 2px 10px; border-radius: 6px; background: var(--c-surface-2); }
+.dv-gorder__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dv .dv-gorder .dv-icon:disabled { opacity: .3; cursor: default; }
+/* Reordenar grupos arrastrando (groupDrag.ts): lo que se toma tiene cursor de mano; el destino se marca */
+.dv-col__head[draggable=true], .dv-explorer__subhead[draggable=true], .dv .dv-group[draggable=true], .dv-gorder__list li[draggable=true],
+.dv .dv-explorer__item[draggable=true], .dv .dv-colbar__item[draggable=true] { cursor: grab; }
+.dv .is-reorder { outline: 2px dashed var(--c-brand); outline-offset: -2px; border-radius: 8px; }
+.dv-grouprow.is-reorder td { background: var(--c-brand-light); }
+.dv-gorder__grip { color: var(--c-text-faint); font-size: .72rem; margin-right: 6px; }
+
+/* Estilo (StyleMenu, menú «…» de la vista): se guarda en cada vista y se aplica en data-tb-* sobre .dv (no toca la página), tokens --c-* */
+.dv-style__note { margin: 0; font-size: .74rem; }
+.dv-pop--menu .dv-style { width: 330px; gap: 8px; } /* el panel define su ancho: las opciones no se cortan */
+.dv-style > b { margin-top: 4px; font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--c-text-m); }
+.dv-style__row { display: grid; gap: 4px; }
+.dv-style__label { font-size: .78rem; color: var(--c-text-b); }
+.dv-style__seg { display: flex; border: 1px solid var(--c-border); border-radius: 8px; overflow: hidden; }
+.dv-style__seg label { flex: 1; position: relative; padding: 5px 6px; text-align: center; font-size: .78rem; cursor: pointer; }
+.dv-style__seg label + label { border-left: 1px solid var(--c-border); }
+.dv-style__seg label.is-active { background: var(--c-brand-emphasis); color: #fff; font-weight: 600; }
+.dv-style__seg label.is-off { cursor: not-allowed; color: var(--c-text-faint); background: var(--c-surface-2); line-height: 1.15; }
+.dv-style__seg label.is-off small { display: block; font-size: .64rem; }
+.dv-style__seg input { position: absolute; opacity: 0; pointer-events: none; }
+.dv-style__seg label:has(input:focus-visible) { outline: 3px solid var(--c-brand); outline-offset: -3px; }
+
+/* "of": cuenta solo filas de datos, así la alternancia no se desfasa con cada sección; el tono sale del texto secundario (se ve en claro, oscuro y alto contraste) */
+.dv[data-tb-striped="on"] .dv-table tbody tr:nth-child(even of :not(.dv-grouprow)) { background: color-mix(in srgb, var(--c-text-m) 12%, var(--c-surface)); }
+.dv[data-tb-striped="on"] .dv-table tbody tr:not(.dv-grouprow):hover { background: var(--c-brand-light); }
+.dv[data-tb-bold="on"] :is(.dv-table td, .dv-card, .dv-card__meta dd, .dv-card__meta dt) { font-weight: 600; }
+.dv[data-tb-lines="on"] .dv-table :is(th, td) + :is(th, td) { border-left: 1px solid var(--c-border); }
+.dv[data-tb-underline="on"] a { text-decoration: underline; text-underline-offset: 2px; }
+.dv[data-tb-density="compact"] .dv-table td { padding-top: 4px; padding-bottom: 4px; }
+.dv[data-tb-density="compact"] .dv-table .dv-th { padding-top: 6px; padding-bottom: 6px; }
+.dv[data-tb-density="compact"] .dv-card { gap: 6px; padding-top: 8px; padding-bottom: 8px; }
+.dv[data-tb-density="comfortable"] .dv-table td { padding-top: 13px; padding-bottom: 13px; }
+.dv[data-tb-density="comfortable"] .dv-table .dv-th { padding-top: 12px; padding-bottom: 12px; }
+.dv[data-tb-density="comfortable"] .dv-card { gap: 13px; padding-top: 16px; padding-bottom: 16px; }
+.dv[data-tb-wrap="wrap"] .dv-table td, .dv[data-tb-wrap="wrap"] .dv-table .dv-td--title, .dv[data-tb-wrap="wrap"] .dv-card__meta dd {
+  white-space: normal; overflow-wrap: anywhere; text-overflow: clip; }
+.dv[data-tb-wrap="wrap"] .dv-table td { vertical-align: top; }
+.dv[data-tb-wrap="wrap"] .dv-table .dv-idcell { display: flex; align-items: flex-start; }
+.dv[data-tb-wrap="wrap"] .dv-card .dv-title { -webkit-line-clamp: unset; }
+.dv[data-tb-size="large"] { zoom: 1.12; }   /* zoom: escala parejo textos en rem, íconos y espacios */
+.dv[data-tb-size="xlarge"] { zoom: 1.25; }
+.dv[data-tb-motion="reduce"], .dv[data-tb-motion="reduce"] * { transition: none !important; animation: none !important; }

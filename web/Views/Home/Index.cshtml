@@ -31,19 +31,23 @@
             <div class="nx-side__brand">
                 <span class="fi-brand on-dark" translate="no"><span class="fi-brand-mark" aria-hidden="true"></span>@producto</span>
             </div>
-            <label class="nx-org"><span>Empresa</span><b id="empNombre"></b><select id="empSel" class="form-select form-select-sm" hidden></select></label>
+            <div class="nx-org"><div id="empSel"></div><div id="wsSel"></div></div>
             <nav id="nav" class="nx-nav" aria-label="Secciones"></nav>
             <div class="nx-side__foot">
                 <span id="who" class="nx-who"></span>
+                <button class="nx-iconbtn nx-bell" id="campana" aria-label="Notificaciones" title="Notificaciones" popovertarget="notifs"><i class="ph ph-bell" aria-hidden="true"></i><span class="nx-bell__n" id="campanaN" aria-hidden="true" hidden></span></button>
+                <div id="notifs" class="nx-pick__pop nx-notifs" popover></div>
                 <button class="nx-iconbtn" id="logout" aria-label="Cerrar sesión" title="Cerrar sesión"><i class="ph ph-sign-out" aria-hidden="true"></i></button>
             </div>
         </aside>
 
         <main id="vista" class="nx-main" tabindex="-1">
+            <div id="comoBanner" class="nx-banner nx-banner--como" role="status" hidden></div>
             <p id="lectura" class="nx-banner" role="status" hidden>
                 <i class="ph ph-lock-simple" aria-hidden="true"></i>
                 El plan de TicketEasy de tu empresa venció. Puedes consultar tus tickets durante el período de gracia, pero no crear ni responder.
             </p>
+            <div id="avisos" class="nx-avisos"></div>
             <header class="nx-head">
                 <div>
                     <p class="fi-eyebrow" id="eyebrow"></p>
@@ -67,5 +71,10 @@
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.7/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@@supabase/supabase-js@@2"></script>
+    @* Tickets y Tickets del equipo: DataViews (React + TanStack, build de ClientApp en wwwroot/dataviews). Sus íconos son Font Awesome *@
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <link rel="stylesheet" href="~/dataviews/dataviews.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dataviews-tokens.css" asp-append-version="true" />
+    <script type="module" src="~/dataviews/dataviews.js" asp-append-version="true"></script>
     <script src="~/js/app.js" asp-append-version="true"></script>
 }

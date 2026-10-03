@@ -484,3 +484,6 @@ $RECYCLE.BIN/
 # Playwright
 playwright-report/
 e2e/capturas/
+
+# Evidencias de archify (capturas y recibos de revisión)
+.archify/

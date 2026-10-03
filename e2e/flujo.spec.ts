@@ -19,8 +19,15 @@ async function entrar(browser: Browser, email: string): Promise<Page> {
   await page.locator('#email').fill(email);
   await page.locator('#pass').fill(PASS);
   await page.locator('#loginBtn').click();
-  await expect(page.getByRole('heading', { name: 'Tickets', level: 1 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Inicio', level: 1 })).toBeVisible();
   return page;
+}
+// El workspace se elige en la barra lateral (con uno solo no hay selector)
+async function enWorkspace(page: Page) {
+  const selector = page.locator('#wsSel .nx-pick__btn');
+  if (!await selector.count()) return;
+  await selector.click();
+  await page.getByRole('option', { name: WS }).click();
 }
 // Las opciones del árbol van indentadas: se elige por texto y se usa su value
 async function elegir(page: Page, label: string, texto: string) {
@@ -31,10 +38,13 @@ async function elegir(page: Page, label: string, texto: string) {
 
 test('el admin crea el workspace, sus categorías, un formulario y el equipo', async ({ browser }) => {
   const page = await entrar(browser, 'te-admin@e2e.test');
-  await page.getByRole('navigation').getByRole('link', { name: 'Nuevo workspace' }).click();
+  const menu = page.getByRole('navigation');
+  await menu.getByText('Administración').click();
+  await menu.getByRole('link', { name: 'Workspaces' }).click();
+  await page.getByRole('link', { name: 'Nuevo workspace' }).click();
   await page.getByLabel('Nombre').fill(WS);
   await page.getByRole('button', { name: 'Crear workspace' }).click();
-  await expect(page.getByRole('heading', { name: WS, level: 1 })).toBeVisible();
+  await expect(page.locator('#eyebrow')).toHaveText(`Configuración · ${WS}`);
 
   // Árbol: Desarrollo / Apps
   await page.getByPlaceholder('Nueva categoría principal').fill('Desarrollo');
@@ -56,7 +66,7 @@ test('el admin crea el workspace, sus categorías, un formulario y el equipo', a
   await page.screenshot({ path: `${capturas}/1-editor-plantillas.png`, fullPage: true });
 
   // Equipo: el agente atiende la rama Apps
-  await page.getByRole('button', { name: 'Equipo', exact: true }).click();
+  await menu.getByRole('link', { name: 'Equipo', exact: true }).click();
   await page.getByLabel('Persona').selectOption({ label: 'Agente E2E' });
   await elegir(page, 'Alcance', 'Apps');
   await page.getByRole('button', { name: 'Agregar' }).click();
@@ -66,9 +76,9 @@ test('el admin crea el workspace, sus categorías, un formulario y el equipo', a
 
 test('Ana abre un ticket en Apps con el formulario dinámico', async ({ browser }) => {
   const page = await entrar(browser, 'te-ana@e2e.test');
+  await enWorkspace(page);
   await page.getByRole('button', { name: 'Nuevo ticket' }).first().click();
   const dlg = page.locator('#dlg');
-  await dlg.getByLabel('Workspace').selectOption({ label: WS });
   await elegir(page, 'Categoría', 'Apps');
   const app = dlg.locator('.nx-field', { hasText: 'Aplicación' }).locator('select');
   await expect(app).toBeVisible();
@@ -86,6 +96,7 @@ test('Ana abre un ticket en Apps con el formulario dinámico', async ({ browser 
 
 test('el agente de Apps lo ve, lo atiende, responde y lo resuelve', async ({ browser }) => {
   const page = await entrar(browser, 'te-agente@e2e.test');
+  await enWorkspace(page);
   await page.getByRole('button', { name: ASUNTO }).click();
   const dlg = page.locator('#dlg');
   await expect(dlg.locator('dd', { hasText: 'App-A' })).toBeVisible();
@@ -103,6 +114,7 @@ test('el agente de Apps lo ve, lo atiende, responde y lo resuelve', async ({ bro
 
 test('Ana ve la respuesta con el rol del agente y confirma la solución', async ({ browser }) => {
   const page = await entrar(browser, 'te-ana@e2e.test');
+  await enWorkspace(page);
   await page.getByRole('button', { name: ASUNTO }).click();
   const dlg = page.locator('#dlg');
   await expect(dlg.locator('.nx-seg__meta', { hasText: 'Agente E2E · Agente' }).first()).toBeVisible();

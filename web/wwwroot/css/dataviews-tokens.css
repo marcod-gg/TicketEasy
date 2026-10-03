@@ -1,0 +1,60 @@
+/* DataViews (wwwroot/dataviews) con el estilo de TicketEasy: cada --c-* apunta a un token --fi-* de tokens.css.
+   Así la tabla sigue el tema claro/oscuro y la marca de la empresa (aplicarMarca reemplaza --fi-accent y --fi-dark).
+   Los estados usan los semánticos de tokens.css, que ya tienen ≥ 4.5:1 sobre bg, surface y crema en ambos temas. */
+:root {
+  --c-bg: var(--fi-bg);
+  --c-surface: var(--fi-surface);
+  --c-surface-2: var(--fi-cream);
+  --c-border: var(--fi-line);
+  --c-border-strong: color-mix(in srgb, var(--fi-ink) 25%, var(--fi-line));
+  --c-text-h: var(--fi-ink);
+  --c-text-b: var(--fi-ink-2);
+  --c-text-m: var(--fi-muted);
+  --c-text-faint: var(--fi-faint);
+  --c-brand: var(--fi-accent);
+  --c-brand-emphasis: var(--fi-accent-hover);
+  --c-brand-light: var(--fi-accent-subtle);
+  --c-danger: var(--fi-danger);
+  /* Estados del ciclo de vida */
+  --c-nuevo: var(--fi-info);
+  --c-pendiente: color-mix(in srgb, var(--fi-info) 70%, var(--fi-ink));
+  --c-curso: var(--fi-accent);
+  --c-espera: var(--fi-warning);
+  --c-espera-bg: color-mix(in srgb, var(--fi-warning) 12%, var(--fi-surface));
+  --c-resuelto: var(--fi-success);
+  --c-cancelado: var(--fi-muted);
+  --c-total: var(--fi-ink-2);
+}
+
+/* Contenedor de la tabla: reserva la barra de scroll (el tablero no cambia de ancho) y fondo propio en pantalla completa */
+html:has(#tabla) { scrollbar-gutter: stable; }
+#tabla:fullscreen { background: var(--fi-bg); padding: 24px; overflow: auto; }
+
+/* La barra lateral queda encima de las capturas de las View Transitions de la tabla */
+.nx-side { view-transition-name: nx-side; }
+::view-transition-group(nx-side), ::view-transition-old(nx-side), ::view-transition-new(nx-side) { animation: none; }
+
+/* Segmentos (lista a la izquierda de la tabla) con el estilo del menú lateral, igual que en Nexus admin-web:
+   ítems sin borde ni caja, ícono suelto, conteo en mono y el elegido marcado con una barra del color de acento */
+.dv .dv-explorer__list { flex-basis: 210px; max-width: 210px; gap: 2px; }
+.dv .dv-explorer__item { position: relative; gap: 10px; padding: 8px 10px; border: 0; border-radius: var(--fi-r-sm); background: transparent;
+  color: var(--fi-muted); font-weight: 500; box-shadow: none; transition: background-color .2s var(--fi-ease), color .2s var(--fi-ease); }
+.dv .dv-explorer__item:hover { background: var(--fi-cream); color: var(--fi-ink); }
+.dv .dv-explorer__item.is-active { background: var(--fi-accent-subtle); color: var(--fi-ink); border: 0; }
+.dv .dv-explorer__item.is-active::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--fi-accent); }
+.dv .dv-explorer__icon { width: auto; height: auto; background: none; border-radius: 0; color: var(--fi-faint); font-size: .85rem; }
+.dv .dv-explorer__item.is-active .dv-explorer__icon { background: none; color: var(--fi-accent); }
+.dv .dv-explorer__name { font-weight: 500; }
+.dv .dv-explorer__count { background: none; padding: 0; color: var(--fi-faint); font: 500 .72rem/1 var(--fi-font-mono); font-variant-numeric: tabular-nums; }
+.dv .dv-explorer__item.is-active .dv-explorer__count { background: none; color: var(--fi-muted); }
+.dv .dv-explorer__list > .dv-explorer__item:first-child { margin-bottom: 6px; }
+.dv .dv-explorer__list > .dv-explorer__item:first-child::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: -4px; border-bottom: 1px solid var(--fi-line); }
+/* En pantallas angostas pasan a una fila de píldoras, como los filtros del resto de la app */
+@media (max-width: 767px) { /* mismo corte que el componente */
+  .dv .dv-explorer__list { flex: none; max-width: none; gap: 6px; align-items: center; }
+  .dv .dv-explorer__list > .dv-explorer__item { height: auto; align-self: center; padding: 5px 12px; border: 1px solid var(--fi-line); border-radius: var(--fi-r-pill); }
+  .dv .dv-explorer__list > .dv-explorer__item:first-child { margin-bottom: 0; }
+  .dv .dv-explorer__list > .dv-explorer__item:first-child::after, .dv .dv-explorer__item.is-active::before { content: none; }
+  .dv .dv-explorer__item.is-active { background: var(--fi-ink); border-color: var(--fi-ink); color: var(--fi-bg); }
+  .dv .dv-explorer__item.is-active .dv-explorer__icon, .dv .dv-explorer__item.is-active .dv-explorer__count { color: var(--fi-bg); }
+}

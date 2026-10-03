@@ -4,6 +4,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- ClientApp (React + Vite de DataViews) no se compila con el proyecto: su build se commitea en wwwroot/dataviews -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);ClientApp\**</DefaultItemExcludes>
   </PropertyGroup>
 
 </Project>

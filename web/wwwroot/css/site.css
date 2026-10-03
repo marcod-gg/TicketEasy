@@ -165,13 +165,8 @@ kbd { font: 500 .7rem/1 var(--fi-font-mono); padding: 3px 6px; border-radius: 5p
   .nx-app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
   .nx-side { position: sticky; top: 0; z-index: 10; height: auto; flex-direction: row; align-items: center; gap: 12px; padding: 10px 12px; }
   .nx-side__brand { padding: 0; }
-  .nx-side__product, .nx-who, .nx-org span { display: none; }
+  .nx-side__product, .nx-who { display: none; }
   .nx-side__foot { border: 0; padding: 0; }
-  .nx-nav { display: flex; gap: 2px; overflow: auto hidden; scrollbar-width: none; flex: 1; }
-  .nx-nav__group { display: flex; gap: 2px; }
-  .nx-nav__label, .nx-nav .nx-count { display: none; }
-  .nx-nav a { white-space: nowrap; padding: 8px; }
-  .nx-nav a[aria-current="page"]::before { left: 8px; right: 8px; top: auto; bottom: -10px; width: auto; height: 3px; border-radius: 3px 3px 0 0; }
   .nx-login { grid-template-columns: 1fr; }
   .nx-login__art { min-height: 42dvh; }
 }
@@ -183,9 +178,20 @@ kbd { font: 500 .7rem/1 var(--fi-font-mono); padding: 3px 6px; border-radius: 5p
 
 /* ── TicketEasy ── */
 .nx-org { display: grid; gap: 6px; padding-inline: 8px; }
-.nx-org span { font: 500 .68rem/1 var(--fi-font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fi-dark-muted); }
-.nx-org b { font-weight: 500; color: var(--fi-dark-ink); }
-.nx-org select { background-color: var(--fi-dark-2); color: var(--fi-dark-ink); border-color: var(--fi-dark-line); }
+.nx-org .nx-pick__cur { color: var(--fi-dark-ink); font-weight: 500; }
+.nx-org .nx-pick__btn { background-color: var(--fi-dark-2); color: var(--fi-dark-ink); border-color: var(--fi-dark-line); }
+
+/* Insignia (logo o inicial) + selector con logo: un botón que abre una lista en popover */
+.nx-badge { flex: none; display: inline-grid; place-items: center; height: 24px; min-width: 24px; max-width: 88px; border-radius: 6px; overflow: hidden; }
+.nx-badge img { height: 24px; max-width: 88px; object-fit: contain; }
+.nx-badge--ini { background: var(--fi-accent-subtle); color: var(--fi-accent); font: 600 .72rem/1 var(--fi-font); }
+.nx-badge .fi-brand-mark { width: 22px; height: 22px; }
+.nx-pick__cur, .nx-pick__btn, .nx-pick__opt { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.nx-pick__cur > span:last-child, .nx-pick__btn > span:last-child, .nx-pick__opt > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-pick__btn { width: 100%; text-align: left; }
+.nx-pick__pop { position: fixed; inset: auto; margin: 0; padding: 6px; min-width: 220px; max-height: 320px; overflow: auto; background: var(--fi-surface); color: var(--fi-ink); border: 1px solid var(--fi-line); border-radius: var(--fi-r); box-shadow: var(--fi-shadow); }
+.nx-pick__opt { width: 100%; border: 0; background: transparent; color: inherit; padding: 8px 10px; border-radius: var(--fi-r-sm); text-align: left; }
+.nx-pick__opt:hover, .nx-pick__opt[aria-selected="true"] { background: var(--fi-accent-subtle); }
 .nx-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
 .nx-estados { display: flex; gap: 8px; flex-wrap: wrap; }
 .nx-seg__item--interna { background: color-mix(in srgb, var(--fi-warning) 7%, transparent); border-radius: var(--fi-r-sm); padding-inline: 10px; }
@@ -205,9 +211,61 @@ kbd { font: 500 .7rem/1 var(--fi-font-mono); padding: 3px 6px; border-radius: 5p
 .nx-nav a[aria-current="page"] { color: var(--fi-dark-ink); background: rgb(255 240 225 / .08); }
 .nx-nav a[aria-current="page"]::before { content: ""; position: absolute; left: -14px; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--fi-accent-light); }
 .nx-nav a[aria-current="page"] i { color: var(--fi-accent-light); }
+/* Grupos colapsables del menú */
+.nx-nav__sub > summary { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--fi-r-sm); color: var(--fi-dark-muted); font-weight: 500; cursor: pointer; list-style: none; transition: background-color .2s var(--fi-ease), color .2s var(--fi-ease); }
+.nx-nav__sub > summary::-webkit-details-marker { display: none; }
+.nx-nav__sub > summary i { font-size: 1.1rem; }
+.nx-nav__sub > summary i:last-child { margin-left: auto; font-size: .8rem; transition: transform .2s var(--fi-ease); }
+.nx-nav__sub[open] > summary i:last-child { transform: rotate(180deg); }
+.nx-nav__sub > summary:hover { color: var(--fi-dark-ink); background: rgb(255 240 225 / .05); }
+.nx-nav__sub > summary:focus-visible { outline: 2px solid var(--fi-accent-light); outline-offset: 2px; }
+.nx-nav__sub:has(a[aria-current="page"]) > summary { color: var(--fi-dark-ink); }
+.nx-nav__sub > div { display: grid; gap: 2px; margin: 2px 0 6px 19px; padding-left: 12px; border-left: 1px solid var(--fi-dark-line); }
+.nx-nav__sub > div a { padding: 6px 10px; font-size: .84rem; }
+.nx-nav__sub > div a[aria-current="page"]::before { left: -13px; top: 6px; bottom: 6px; }
 .nx-nav .nx-count { margin-left: auto; font: 500 .72rem/1 var(--fi-font-mono); font-variant-numeric: tabular-nums; color: var(--fi-dark-muted); }
 
 /* ── Banner de solo lectura ── */
+/* Campana de notificaciones */
+.nx-bell { position: relative; }
+.nx-bell__n { position: absolute; top: 2px; right: 0; min-width: 17px; height: 17px; padding: 0 4px; border-radius: var(--fi-r-pill); background: var(--fi-accent); color: var(--fi-on-accent); font: 600 .62rem/17px var(--fi-font); text-align: center; }
+.nx-notifs { width: min(360px, calc(100vw - 16px)); padding: 0; }
+.nx-notifs__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--fi-line); }
+.nx-notifs__list { list-style: none; margin: 0; padding: 4px; max-height: min(60vh, 480px); overflow: auto; }
+.nx-notifs .nx-quiet { padding: 20px 14px; margin: 0; }
+.nx-notif { display: flex; gap: 10px; align-items: flex-start; width: 100%; padding: 10px; border: 0; background: transparent; color: var(--fi-ink-2); text-align: left; border-radius: var(--fi-r-sm); }
+.nx-notif:hover { background: var(--fi-accent-subtle); }
+.nx-notif b { display: block; font-weight: 500; }
+.nx-notif small { display: block; color: var(--fi-muted); font-size: .74rem; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.nx-notif.is-new b { color: var(--fi-ink); font-weight: 600; }
+.nx-notif.is-new .nx-item__icon { box-shadow: 0 0 0 2px var(--fi-accent); }
+
+/* Documentación: el diagrama ocupa el alto disponible (trae su propio zoom, tema y exportación) */
+.nx-doc { display: block; width: 100%; height: max(560px, calc(100dvh - 220px)); border: 1px solid var(--fi-line); border-radius: var(--fi-r-lg); background: var(--fi-surface); }
+
+/* Barra de comunicados (todas las páginas menos Inicio): una sola línea */
+.nx-avisobar { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 12px 0 6px; border-radius: var(--fi-r); border: 1px solid color-mix(in srgb, var(--k) 30%, transparent); background: color-mix(in srgb, var(--k) 8%, var(--fi-surface)); color: var(--fi-ink); text-decoration: none; font-size: .84rem; font-weight: 500; overflow: hidden; }
+.nx-avisobar:hover { color: var(--fi-ink); border-color: var(--k); }
+.nx-avisobar:focus-visible { outline: 2px solid var(--k); outline-offset: 2px; }
+.nx-avisobar__ico { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: var(--fi-r-sm); color: var(--k); background: color-mix(in srgb, var(--k) 16%, transparent); }
+.nx-avisobar__txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-avisobar__n { flex: none; padding: 2px 8px; border-radius: var(--fi-r-pill); font: 500 .7rem/1.4 var(--fi-font-mono); color: var(--k); background: color-mix(in srgb, var(--k) 16%, transparent); }
+
+/* Comunicados vigentes del workspace */
+.nx-avisos { display: grid; gap: 10px; margin: 0 0 20px; }
+.nx-avisos:empty { display: none; }
+.nx-aviso { display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px; border-radius: var(--fi-r); border: 1px solid color-mix(in srgb, var(--k) 30%, transparent); background: color-mix(in srgb, var(--k) 8%, var(--fi-surface)); }
+.nx-aviso > i { color: var(--k); font-size: 1.15rem; margin-top: 1px; }
+.nx-aviso b { display: block; color: var(--fi-ink); font-weight: 600; }
+.nx-aviso p { margin: 0; color: var(--fi-ink-2); overflow-wrap: anywhere; }
+.nx-aviso__ws { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; color: var(--fi-muted); font: 500 .72rem/1 var(--fi-font-mono); letter-spacing: .04em; text-transform: uppercase; }
+.nx-aviso__ws .nx-badge { height: 18px; min-width: 18px; border-radius: 4px; }
+.nx-aviso__ws .nx-badge img { height: 18px; }
+.nx-inicio-avisos { margin-bottom: 24px; }
+.nx-inicio-avisos .nx-avisos { margin: 0; }
+.nx-aviso small { display: block; margin-top: 4px; color: var(--fi-muted); font-size: .75rem; }
+.nx-banner--como { justify-content: space-between; flex-wrap: wrap; background: color-mix(in srgb, var(--fi-info) 10%, transparent); color: var(--fi-info); }
+.nx-banner--como span { display: inline-flex; align-items: center; gap: 10px; }
 .nx-banner { display: flex; gap: 10px; align-items: center; padding: 12px 16px; margin: 0 0 20px; border-radius: var(--fi-r); background: color-mix(in srgb, var(--fi-warning) 10%, transparent); color: var(--fi-warning); font-weight: 500; }
 
 /* ── Pestañas y paneles de configuración ── */
@@ -229,7 +287,11 @@ kbd { font: 500 .7rem/1 var(--fi-font-mono); padding: 3px 6px; border-radius: 5p
 
 /* Lista de campos del formulario y filas simples */
 .nx-lines { list-style: none; margin: 0; padding: 0; display: grid; }
-.nx-line { display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 10px 0; }
+.nx-line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 0; }
+.nx-line > div { min-width: 0; overflow-wrap: anywhere; }
+/* Comunicados publicados: título en una línea, detalle en dos; el texto completo va en el title */
+.nx-line--aviso b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-line--aviso small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .nx-line + .nx-line { border-top: 1px solid var(--fi-line-soft); }
 .nx-line small { color: var(--fi-muted); display: block; }
 .nx-line .is-off { opacity: .55; }
@@ -265,3 +327,39 @@ kbd { font: 500 .7rem/1 var(--fi-font-mono); padding: 3px 6px; border-radius: 5p
 .nx-editor .ql-container.ql-snow { height: auto; }
 /* En el detalle, la columna de datos no se estira al alto de la conversación */
 .nx-dialog--wide .nx-fields { align-content: start; }
+
+/* Inicio: buscador, lista de recientes y contadores destacados */
+.nx-inicio-buscar { margin-bottom: 16px; }
+.nx-tklist { list-style: none; margin: 0; padding: 0; display: grid; }
+.nx-tklist > li + li { border-top: 1px solid var(--fi-line-soft); }
+.nx-tk { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; padding: 10px 6px; border: 0; background: transparent; color: var(--fi-ink); text-align: left; border-radius: var(--fi-r-sm); }
+.nx-tk > .nx-chip { justify-self: start; max-width: 100%; }   /* columna de estado de ancho fijo: alinea los asuntos */
+.nx-tk:hover { background: var(--fi-accent-subtle); }
+.nx-tk__main b { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-tk__main small { display: block; color: var(--fi-muted); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-tk__when { color: var(--fi-muted); font-size: .76rem; white-space: nowrap; }
+@media (max-width: 560px) { .nx-tk { grid-template-columns: minmax(0, 1fr); gap: 4px; } .nx-tk__when { display: none; } }
+div.nx-tile { cursor: default; }
+.nx-tile--accion.has-items { border-color: var(--fi-accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fi-accent) 18%, transparent); }
+.nx-tile--accion.has-items b { color: var(--fi-accent); }
+@media (prefers-reduced-motion: no-preference) {
+  .nx-tile--accion.has-items { animation: nx-pulso 2.4s ease-in-out infinite; }
+  @keyframes nx-pulso { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--fi-accent) 8%, transparent); } }
+}
+
+/* Inicio: contadores que llevan a la vista filtrada */
+.nx-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.nx-tile { display: grid; gap: 6px; padding: 16px 18px; background: var(--fi-surface); border: 1px solid var(--fi-line); border-radius: var(--fi-r-lg); color: var(--fi-muted); text-decoration: none; transition: border-color .2s var(--fi-ease); }
+.nx-tile b { font-size: 1.6rem; font-weight: 500; color: var(--fi-ink); line-height: 1.1; }
+.nx-tile:hover { border-color: var(--fi-accent); }
+
+/* Menú en móvil: va al final para ganarle a las reglas base del menú */
+@media (max-width: 860px) {
+  .nx-nav { display: flex; gap: 2px; overflow: auto hidden; scrollbar-width: none; flex: 1; }
+  .nx-nav__group { display: flex; gap: 2px; }
+  .nx-nav__label, .nx-nav .nx-count { display: none; }
+  .nx-nav a, .nx-nav__sub > summary { white-space: nowrap; padding: 8px; }
+  .nx-nav__sub { display: flex; }
+  .nx-nav__sub > div { display: flex; margin: 0; padding: 0 0 0 4px; border-left: 0; }
+  .nx-nav a[aria-current="page"]::before { left: 8px; right: 8px; top: auto; bottom: -10px; width: auto; height: 3px; border-radius: 3px 3px 0 0; }
+}
