@@ -1,9 +1,9 @@
 {
   "schema_version": 2,
-  "diagram_type": "lifecycle",
+  "diagram_type": "workflow",
   "meta": {
-    "title": "TicketEasy: ciclo de vida de un ticket",
-    "output": "web/wwwroot/diagramas/tickets.html",
+    "title": "TicketEasy: cómo se asignan los tickets",
+    "output": "web/wwwroot/diagramas/asignacion.html",
     "locale": "es",
     "translations": {
       "page.title": "{title} · Diagrama",
@@ -446,364 +446,316 @@
       "viewer.common.close": "Cerrar"
     },
     "quality_profile": "showcase",
-    "repository": {
-      "url": "https://github.com/marcod-gg/TicketEasy.git",
-      "provider": "github",
-      "link_mode": "web",
-      "revision": "cb3f826536a54b3a22f9f97ec2ef2d2d8ad0ae43"
+    "legend": {
+      "entries": {
+        "frontend": {
+          "label": "acción de una persona"
+        },
+        "backend": {
+          "label": "regla automática"
+        },
+        "security": {
+          "label": "decisión"
+        },
+        "messagebus": {
+          "label": "resultado"
+        },
+        "database": {
+          "label": "horario y feriados"
+        },
+        "external": {
+          "label": "sin asignar"
+        }
+      }
     }
   },
   "lanes": [
     {
-      "id": "main",
-      "label": "Flujo principal"
+      "id": "entrada",
+      "label": "Ticket nuevo y asignación manual"
     },
     {
-      "id": "espera",
-      "label": "Esperas, reapertura y escalamiento"
+      "id": "auto",
+      "label": "Asignación automática (opcional)"
     },
     {
-      "id": "terminal",
-      "label": "Cancelación"
+      "id": "fuera",
+      "label": "Fuera de horario y SLA"
+    },
+    {
+      "id": "horarios",
+      "label": "Horarios y feriados"
     }
   ],
-  "states": [
+  "phases": [
     {
-      "id": "nuevo",
-      "type": "start",
-      "label": "Nuevo",
-      "sublabel": "lo abre el solicitante",
-      "lane": "main",
+      "id": "f-ingreso",
+      "label": "Ingreso",
+      "fromCol": 0,
+      "toCol": 1
+    },
+    {
+      "id": "f-candidatos",
+      "label": "Quién puede recibirlo",
+      "fromCol": 2,
+      "toCol": 3,
+      "variant": "emphasis"
+    },
+    {
+      "id": "f-eleccion",
+      "label": "A quién se le da",
+      "fromCol": 4,
+      "toCol": 5,
+      "variant": "dashed"
+    }
+  ],
+  "mainPath": [
+    "crea",
+    "activa",
+    "cubren",
+    "turno",
+    "carga",
+    "asignado"
+  ],
+  "nodes": [
+    {
+      "id": "crea",
+      "lane": "entrada",
       "col": 0,
-      "step": "01",
-      "tag": "new",
-      "sources": [
-        {
-          "path": "supabase/migrations/20261002231329_ticketeasy.sql",
-          "line": 109
-        }
-      ]
+      "type": "frontend",
+      "label": "Se crea el ticket",
+      "sublabel": "solicitante o equipo",
+      "width": 140
     },
     {
-      "id": "clasificado",
-      "type": "active",
-      "label": "Clasificado",
-      "sublabel": "categoría y prioridad",
-      "lane": "main",
+      "id": "activa",
+      "lane": "entrada",
       "col": 1,
-      "step": "02",
-      "tag": "triaged",
-      "sources": [
-        {
-          "path": "supabase/migrations/20261002231329_ticketeasy.sql",
-          "line": 191,
-          "end_line": 200
-        },
-        {
-          "path": "web/wwwroot/js/app.js",
-          "line": 10,
-          "end_line": 12
-        }
-      ]
+      "type": "security",
+      "label": "¿Asignación automática?",
+      "sublabel": "Administración → Ajustes",
+      "tag": "por workspace",
+      "width": 170
     },
     {
-      "id": "en_curso",
-      "type": "active",
-      "label": "En curso",
-      "sublabel": "se asigna a quien atiende",
-      "lane": "main",
+      "id": "cubren",
+      "lane": "auto",
       "col": 2,
-      "step": "03",
-      "tag": "in_progress",
-      "sources": [
-        {
-          "path": "supabase/migrations/20261002231329_ticketeasy.sql",
-          "line": 279,
-          "end_line": 298
-        }
-      ]
+      "type": "security",
+      "label": "¿Alguien activo atiende?",
+      "sublabel": "cubre la categoría",
+      "width": 170
     },
     {
-      "id": "resuelto",
-      "type": "decision",
-      "label": "Resuelto",
-      "sublabel": "espera confirmación",
-      "lane": "main",
+      "id": "turno",
+      "lane": "auto",
       "col": 3,
-      "step": "04",
-      "tag": "resolved",
-      "sources": [
-        {
-          "path": "supabase/migrations/20261002231329_ticketeasy.sql",
-          "line": 320,
-          "end_line": 340
-        }
-      ]
+      "type": "security",
+      "label": "¿Alguien en turno?",
+      "sublabel": "ahora, según su horario",
+      "width": 160
     },
     {
-      "id": "cerrado",
-      "type": "success",
-      "label": "Cerrado",
-      "sublabel": "sin más cambios",
-      "lane": "main",
+      "id": "carga",
+      "lane": "auto",
       "col": 4,
-      "step": "05",
-      "tag": "closed",
-      "sources": [
-        {
-          "path": "supabase/migrations/20261002231329_ticketeasy.sql",
-          "line": 279,
-          "end_line": 298
-        }
-      ]
+      "type": "backend",
+      "label": "Menos tickets abiertos",
+      "sublabel": "empate: el que recibió hace más",
+      "width": 160
     },
     {
-      "id": "escalado",
-      "type": "waiting",
-      "label": "Escalado",
-      "sublabel": "vuelve a clasificarse",
-      "lane": "espera",
-      "col": 1,
-      "tag": "escalated",
-      "sources": [
-        {
-          "path": "supabase/migrations/20261002231329_ticketeasy.sql",
-          "line": 191,
-          "end_line": 200
-        },
-        {
-          "path": "web/wwwroot/js/app.js",
-          "line": 10,
-          "end_line": 12
-        }
-      ]
+      "id": "asignado",
+      "lane": "auto",
+      "col": 5,
+      "type": "messagebus",
+      "label": "Asignado",
+      "sublabel": "le llega el aviso",
+      "width": 140
     },
     {
-      "id": "en_pausa",
-      "type": "waiting",
-      "label": "En espera de terceros",
-      "sublabel": "proveedor u otra área",
-      "lane": "espera",
-      "col": 2,
-      "tag": "on_hold",
-      "sources": [
-        {
-          "path": "supabase/migrations/20261002231329_ticketeasy.sql",
-          "line": 191,
-          "end_line": 200
-        },
-        {
-          "path": "web/wwwroot/js/app.js",
-          "line": 10,
-          "end_line": 12
-        }
-      ]
-    },
-    {
-      "id": "reabierto",
-      "type": "waiting",
-      "label": "Reabierto",
-      "sublabel": "no quedó resuelto",
-      "lane": "espera",
+      "id": "proximo",
+      "lane": "fuera",
       "col": 3,
-      "tag": "reopened",
-      "sources": [
-        {
-          "path": "supabase/migrations/20261002231329_ticketeasy.sql",
-          "line": 320,
-          "end_line": 340
-        }
-      ]
+      "type": "backend",
+      "label": "Entra antes en turno",
+      "sublabel": "empate: menos carga",
+      "width": 160
     },
     {
-      "id": "pendiente",
-      "type": "waiting",
-      "label": "Pendiente de respuesta",
-      "sublabel": "espera al solicitante",
-      "lane": "espera",
+      "id": "sla",
+      "lane": "fuera",
+      "col": 5,
+      "type": "backend",
+      "label": "Corre el SLA",
+      "sublabel": "meta según prioridad",
+      "width": 160
+    },
+    {
+      "id": "horario",
+      "lane": "horarios",
       "col": 4,
-      "tag": "pending_requester"
+      "type": "database",
+      "label": "Horario del agente",
+      "sublabel": "semanal, más sus guardias",
+      "width": 160
     },
     {
-      "id": "cancelado",
-      "type": "failure",
-      "label": "Cancelado",
-      "sublabel": "duplicado, no corresponde, comunicado, retirado u otro",
-      "lane": "terminal",
+      "id": "feriados",
+      "lane": "horarios",
+      "col": 5,
+      "type": "database",
+      "label": "Feriados",
+      "sublabel": "empresa y workspace, opcional",
+      "width": 160
+    },
+    {
+      "id": "sinasignar",
+      "lane": "entrada",
       "col": 2,
-      "tag": "cancelled",
-      "width": 300
+      "type": "external",
+      "label": "Queda sin asignar",
+      "sublabel": "visible al equipo",
+      "width": 160
+    },
+    {
+      "id": "atender",
+      "lane": "entrada",
+      "col": 3,
+      "type": "frontend",
+      "label": "Alguien lo atiende",
+      "sublabel": "Atender lo toma",
+      "width": 150
     }
   ],
-  "transitions": [
+  "edges": [
     {
-      "from": "nuevo",
-      "to": "clasificado",
-      "label": "clasifica"
+      "from": "crea",
+      "to": "activa"
     },
     {
-      "from": "clasificado",
-      "to": "en_curso",
-      "label": "atiende"
-    },
-    {
-      "from": "en_curso",
-      "to": "resuelto",
-      "label": "resuelve"
-    },
-    {
-      "from": "resuelto",
-      "to": "cerrado",
-      "label": "confirma"
-    },
-    {
-      "from": "en_curso",
-      "to": "en_pausa",
-      "label": "espera a un tercero",
-      "variant": "dashed"
-    },
-    {
-      "from": "en_pausa",
-      "to": "en_curso",
-      "label": "retoma"
-    },
-    {
-      "from": "resuelto",
-      "to": "reabierto",
-      "label": "rechaza",
-      "variant": "dashed"
-    },
-    {
-      "from": "reabierto",
-      "to": "en_curso",
-      "label": "retoma"
-    },
-    {
-      "from": "en_curso",
-      "to": "escalado",
-      "label": "escala",
+      "from": "activa",
+      "to": "cubren",
+      "label": "sí",
       "variant": "emphasis"
     },
     {
-      "from": "en_pausa",
-      "to": "escalado",
-      "label": "escala",
+      "from": "cubren",
+      "to": "turno",
+      "label": "sí",
       "variant": "emphasis"
     },
     {
-      "from": "escalado",
-      "to": "clasificado",
-      "label": "reclasifica"
+      "from": "turno",
+      "to": "carga",
+      "label": "sí",
+      "variant": "emphasis"
     },
     {
-      "from": "en_curso",
-      "to": "pendiente",
-      "label": "pide información",
+      "from": "carga",
+      "to": "asignado",
+      "variant": "emphasis"
+    },
+    {
+      "from": "turno",
+      "to": "proximo",
+      "label": "no",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "from": "proximo",
+      "to": "asignado",
       "variant": "dashed"
     },
     {
-      "from": "pendiente",
-      "to": "en_curso",
-      "label": "el solicitante responde"
+      "from": "asignado",
+      "to": "sla",
+      "variant": "dashed",
+      "role": "async"
     },
     {
-      "from": "nuevo",
-      "to": "cancelado",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "left",
-      "label": "cancela con motivo"
+      "from": "horario",
+      "to": "proximo",
+      "label": "próximo turno",
+      "variant": "dashed"
     },
     {
-      "from": "escalado",
-      "to": "cancelado",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "top"
+      "from": "horario",
+      "to": "sla",
+      "label": "horas hábiles",
+      "variant": "dashed"
     },
     {
-      "from": "en_pausa",
-      "to": "cancelado",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "top",
-      "route": "straight"
+      "from": "feriados",
+      "to": "sla",
+      "label": "no corre, salvo guardia",
+      "variant": "dashed"
     },
     {
-      "from": "reabierto",
-      "to": "cancelado",
-      "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "right"
+      "from": "activa",
+      "to": "sinasignar",
+      "label": "no",
+      "variant": "dashed",
+      "role": "branch"
     },
     {
-      "from": "pendiente",
-      "to": "cancelado",
+      "from": "cubren",
+      "to": "sinasignar",
+      "label": "nadie activo",
       "variant": "security",
-      "fromSide": "bottom",
-      "toSide": "right",
-      "label": "sin respuesta: cierre automático"
+      "role": "error"
     },
     {
-      "from": "clasificado",
-      "to": "cancelado",
-      "variant": "security",
-      "fromSide": "left",
-      "toSide": "left",
-      "route": "left-channel"
-    },
-    {
-      "from": "en_curso",
-      "to": "cancelado",
-      "variant": "security",
-      "fromSide": "right",
-      "toSide": "right",
-      "route": "right-channel"
+      "from": "sinasignar",
+      "to": "atender"
     }
   ],
   "cards": [
     {
-      "dot": "emerald",
-      "title": "Quién mueve el ticket",
+      "dot": "cyan",
+      "title": "Dónde se configura",
       "items": [
-        "El equipo con alcance sobre la categoría cambia el estado (owner, supervisor o agente)",
-        "El solicitante no edita su ticket: confirma la solución (Cerrado) o la rechaza (Reabierto)",
-        "Rechazar exige contar qué sigue sin funcionar"
+        "Administración → Ajustes de atención: asignación automática y considerar feriados (cada uno se activa por workspace)",
+        "Administración → Horario: zona horaria, semana y feriados de la empresa (admin de la empresa)",
+        "Configuración del workspace → Equipo y Feriados: rol, si también atiende, si está activo, horario propio, guardias y feriados del workspace",
+        "Gestión → Análisis de datos: activar el SLA, sus metas por prioridad y revisar su cumplimiento"
       ]
     },
     {
       "dot": "rose",
-      "title": "Cancelación",
+      "title": "Roles del equipo",
       "items": [
-        "Desde cualquier estado abierto antes de Resuelto; Cancelado es final, como Cerrado",
-        "El cierre automático cancela con motivo Sin respuesta del solicitante",
-        "Siempre con motivo: duplicado de otro ticket del workspace, no corresponde, ya informado en un comunicado, el solicitante ya no lo necesita u otro",
-        "El solicitante recibe el motivo en la conversación"
+        "Owner: solo administra, o administra y también atiende tickets",
+        "Supervisor: solo supervisa, o supervisa y también atiende tickets",
+        "Agente: atiende tickets. Cualquiera que atiende puede estar activo o no (vacaciones, licencia)"
       ]
     },
     {
-      "dot": "cyan",
-      "title": "Qué deja cada cambio",
+      "dot": "emerald",
+      "title": "Cómo se elige",
       "items": [
-        "La base rechaza cualquier salto fuera de este mapa (te_transicion_valida)",
-        "Pasar a En curso sin asignado lo asigna a quien lo atiende",
-        "Cada cambio queda en la conversación como mensaje del sistema, con su fecha"
+        "Entre quienes atienden la categoría y están activos",
+        "Si alguien está en turno: el de menos tickets abiertos; si empatan, el que recibió uno hace más tiempo",
+        "Si nadie está en turno, igual se asigna: al que entra antes en turno (si empatan, el de menos carga)"
       ]
     },
     {
       "dot": "violet",
-      "title": "Espera y encuesta",
+      "title": "Horario, guardias y feriados",
       "items": [
-        "En espera de terceros: depende de un proveedor u otra área. Pendiente de respuesta: espera al solicitante y vuelve a En curso cuando contesta",
-        "Con cierre automático activo (Gestión → Ajustes de atención), se cancela si no responde en el plazo; a la mitad recibe un recordatorio",
-        "Con la encuesta activa, al cerrar el solicitante califica de 1 a 5 estrellas y elige qué destacar o mejorar"
+        "Horario semanal: el propio del agente o, si no tiene, el de la empresa",
+        "Guardia: turno de una fecha puntual (p. ej. un feriado o un sábado), marcado aparte del horario normal",
+        "Con feriados activos, ese día nadie está en turno salvo quien tenga guardia"
       ]
     },
     {
       "dot": "amber",
-      "title": "Aún no",
+      "title": "SLA",
       "items": [
-        "Sin SLA ni tiempos de respuesta comprometidos"
+        "Metas por prioridad, definidas por workspace: primera respuesta y resolución",
+        "Cuenta solo las horas hábiles del agente asignado: su horario semanal y sus guardias, sin feriados",
+        "Se detiene en Pendiente de respuesta y En espera de terceros, y sigue al volver a En curso"
       ]
     }
   ]

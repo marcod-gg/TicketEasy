@@ -39,9 +39,14 @@ async function elegir(page: Page, label: string, texto: string) {
 test('el admin crea el workspace, sus categorías, un formulario y el equipo', async ({ browser }) => {
   const page = await entrar(browser, 'te-admin@e2e.test');
   const menu = page.getByRole('navigation');
-  await menu.getByText('Administración').click();
-  await menu.getByRole('link', { name: 'Workspaces' }).click();
-  await page.getByRole('link', { name: 'Nuevo workspace' }).click();
+  // Nuevo workspace: última opción del selector de la barra lateral (sin workspaces, el botón de Inicio)
+  const selectorWs = page.locator('#wsSel .nx-pick__btn');
+  if (await selectorWs.count()) {
+    await selectorWs.click();
+    await page.getByRole('option', { name: 'Nuevo workspace' }).click();
+  } else {
+    await page.getByRole('link', { name: 'Nuevo workspace' }).click();
+  }
   await page.getByLabel('Nombre').fill(WS);
   await page.getByRole('button', { name: 'Crear workspace' }).click();
   await expect(page.locator('#eyebrow')).toHaveText(`Configuración · ${WS}`);

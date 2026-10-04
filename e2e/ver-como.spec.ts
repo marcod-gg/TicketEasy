@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // "Ver como" con los datos demo (seed del núcleo + supabase/seed/datos_prueba.sql):
-// Carolina es owner de TI en Comercial Andes y mira la app como Pablo (agente de Soporte), en solo lectura.
+// Carolina es admin de Comercial Andes (y owner de TI): desde Administración mira la app como Pablo (agente de Soporte), en solo lectura.
 // Contraseña de las cuentas demo en DEMO_PASS.
 const PASS = process.env.DEMO_PASS ?? '';
 test.skip(!PASS, 'Falta DEMO_PASS');
@@ -27,7 +27,7 @@ test('la owner ve la app como un agente, en solo lectura, y vuelve a su vista', 
   }
 
   const menu = page.getByRole('navigation');
-  await menu.getByText('Gestión').click();
+  await menu.getByText('Administración').click();
   await menu.getByRole('link', { name: 'Ver como' }).click();
   await expect(page.getByRole('heading', { name: 'Ver como', level: 1 })).toBeVisible();
 

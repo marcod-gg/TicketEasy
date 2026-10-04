@@ -1,5 +1,4 @@
-// DataViews de TicketEasy: "Tickets" (alcances según el rol: ingresados por mí, asignados a mí, todos) y
-// "Tickets del equipo" (Gestión: lo que atiendo).
+// DataViews de TicketEasy: "Tickets", con alcances según el rol (ingresados por mí, asignados a mí, todos).
 // La app (wwwroot/js/app.js) es JS sin framework: este build expone window.TicketTabla.montar(el, opciones) y
 // app.js lo monta al entrar a la vista y lo desmonta al salir. Los datos, permisos y el cambio de estado los pone app.js
 // (Supabase con RLS); aquí solo se arman campos, vistas por defecto y el montaje.
@@ -11,15 +10,12 @@ import { DataViews } from './dataviews/DataViews';
 import { blankView } from './dataviews/useViews';
 import type { Fields, FilterRule, Row, ViewConfig } from './dataviews/types';
 
-export type Alcance = 'tickets' | 'team';
 export type Fuente = 'mine' | 'assigned' | 'all';
 
 export interface Opciones {
-  alcance: Alcance;
   storageKey: string;
   categorias: string[]; // rutas "Padre / Hija" del workspace, en orden de árbol
   equipo: string[]; // nombres del equipo (para agrupar por asignado)
-  yoNombre: string; // para la vista "Asignados a mí" del equipo
   fuentes: Fuente[]; // tickets: alcances que permite el rol, en orden de pestañas; la última es la que se abre la primera vez
   load: (source: string) => Promise<Row[]>;
   vistaInicial?: string; // id de una vista por defecto (los contadores de Inicio)
@@ -32,11 +28,13 @@ const ESTADOS = [
   { value: 'Nuevo', color: 'var(--c-nuevo)', icon: 'fa-circle-plus' },
   { value: 'Clasificado', color: 'var(--c-pendiente)', icon: 'fa-tag' },
   { value: 'En curso', color: 'var(--c-curso)', icon: 'fa-play' },
-  { value: 'En pausa', color: 'var(--c-espera)', icon: 'fa-pause' },
+  { value: 'Pendiente de respuesta', color: 'var(--c-espera)', icon: 'fa-comment-dots' },
+  { value: 'En espera de terceros', color: 'var(--c-espera)', icon: 'fa-hourglass-half' },
   { value: 'Escalado', color: 'var(--c-danger)', icon: 'fa-arrow-up' },
   { value: 'Reabierto', color: 'var(--c-espera)', icon: 'fa-rotate-left' },
   { value: 'Resuelto', color: 'var(--c-resuelto)', icon: 'fa-circle-check' },
-  { value: 'Cerrado', color: 'var(--c-cancelado)', icon: 'fa-lock' },
+  { value: 'Cerrado', color: 'var(--c-total)', icon: 'fa-lock' },
+  { value: 'Cancelado', color: 'var(--c-cancelado)', icon: 'fa-ban' },
 ];
 
 function campos(o: Opciones): Fields {
@@ -67,27 +65,16 @@ function campos(o: Opciones): Fields {
 }
 
 // Vistas iniciales con id fijo: Inicio abre una por su id (vistaInicial)
-const regla = (col: string, op: string, value = ''): FilterRule => ({ id: `${col}-${op}-${value}`, col, op, value, join: 'and' });
-const abiertos = regla('estado', 'isNot', 'Cerrado');
 const vista = (id: string, name: string, type: ViewConfig['type'], filters: FilterRule[], extra: Partial<ViewConfig> = {}): ViewConfig =>
   ({ ...blankView(type, 'all', name), id, filters, sorting: [{ id: 'movimiento', desc: true }], ...extra });
 
 function vistasPorDefecto(o: Opciones): ViewConfig[] {
-  // Tickets: una vista por alcance del rol (el servidor ya limita lo que cada uno ve)
-  if (o.alcance === 'tickets') return o.fuentes.map(f => ({
+  // Una vista por alcance del rol (el servidor ya limita lo que cada uno ve)
+  return o.fuentes.map(f => ({
     mine: vista('ingresados', 'Ingresados por mí', 'table', [], { source: 'mine', hidden: { solicitante: false } }),
     assigned: vista('asignados', 'Asignados a mí', 'table', [], { source: 'assigned', hidden: { asignado: false } }),
     all: vista('todos_tickets', 'Todos los tickets', 'table', [], { source: 'all', groupBy: 'estado' }),
   })[f]);
-  return [
-    vista('abiertos', 'Abiertos', 'table', [abiertos], { groupBy: 'estado' }),
-    vista('tablero', 'Tablero', 'board', [abiertos], { groupBy: 'estado' }),
-    vista('mios', 'Asignados a mí', 'table', [abiertos, regla('asignado', 'is', o.yoNombre)], { hidden: { asignado: false } }),
-    vista('sin_asignar', 'Sin asignar', 'table', [abiertos, regla('asignado', 'empty')], { hidden: { asignado: false } }),
-    vista('pausa', 'En pausa', 'table', [regla('estado', 'is', 'En pausa')]),
-    vista('escalados', 'Escalados', 'table', [regla('estado', 'is', 'Escalado')]),
-    vista('todos', 'Todos', 'table', [], { groupBy: 'estado' }),
-  ];
 }
 
 // Deja activa la vista pedida (si existe en lo guardado o en las por defecto) antes de montar: useViews la lee al iniciar
@@ -124,7 +111,7 @@ function App({ o, fields, defaults, box }: { o: Opciones; fields: Fields; defaul
       storageKey={o.storageKey}
       defaultViews={defaults}
       rowHref={r => `#/t/${r.id}`}
-      exportTitle={o.alcance === 'tickets' ? 'Tickets' : 'Tickets del equipo'}
+      exportTitle="Tickets"
       forcePageSize={full ? 0 : undefined}
       validateMove={o.validateMove && ((r, f, v) => (f === 'estado' ? o.validateMove!(r, v) : 'Arrastrando solo se cambia el estado.'))}
       onMove={o.onMove && ((r, f, v) => (f === 'estado' ? o.onMove!(r, v) : Promise.reject(new Error('Arrastrando solo se cambia el estado.'))))}
@@ -144,7 +131,7 @@ function montar(el: HTMLElement, o: Opciones): () => void {
   const fields = campos(o);
   const defaults = () => vistasPorDefecto(o);
   // La primera vez se abre la vista del rol (la última fuente); después, la última que usó la persona, salvo que Inicio pida otra
-  try { if (!localStorage.getItem(o.storageKey) && o.alcance === 'tickets') preferir(o.storageKey, VISTA_DE_FUENTE[o.fuentes[o.fuentes.length - 1]], defaults); } catch { /* sin storage */ }
+  try { if (!localStorage.getItem(o.storageKey)) preferir(o.storageKey, VISTA_DE_FUENTE[o.fuentes[o.fuentes.length - 1]], defaults); } catch { /* sin storage */ }
   preferir(o.storageKey, o.vistaInicial, defaults);
   const root = createRoot(el);
   root.render(<StrictMode><App o={o} fields={fields} defaults={defaults} box={el} /></StrictMode>);
